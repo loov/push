@@ -5,7 +5,7 @@
 // is pure []byte ↔ typed value conversion.
 package mcu
 
-import "github.com/loov/logic-push3"
+import "github.com/loov/logic-push3/push3"
 
 // MessageKind identifies the type of an MCU message.
 type MessageKind uint8

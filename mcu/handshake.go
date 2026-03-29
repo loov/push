@@ -1,6 +1,6 @@
 package mcu
 
-import "github.com/loov/logic-push3"
+import "github.com/loov/logic-push3/push3"
 
 // MCU SysEx commands.
 const (
