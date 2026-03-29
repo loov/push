@@ -86,10 +86,19 @@ func init() {
 	// Master
 	add(13, 15, 81, 5, push3.ButtonMaster)
 
+	// ── Volume encoder press (overlays Vol box, rows 7-11) ──
+	add(7, 11, 7, 7, push3.ButtonVolumePress)
+
+	// ── Jog wheel actions (overlay Jog box, rows 6-12) ──
+	add(6, 12, 92, 8, push3.ButtonJogClick)
+	// Jog push left/right also highlight the box.
+	add(6, 12, 92, 8, push3.ButtonJogPushLeft)
+	add(6, 12, 92, 8, push3.ButtonJogPushRight)
+
 	// ── Left pad-area buttons ──
-	// Swing/Tempo box (rows 16-18)
+	// Swing/Tempo press (CC 15, rows 16-18)
+	add(16, 18, 3, 12, push3.ButtonSwingTempoPress)
 	// Tap/Tempo box (rows 19-22)
-	add(16, 18, 3, 12, push3.ButtonTapTempo) // Swing/Tempo uses same button?
 	add(19, 22, 3, 12, push3.ButtonTapTempo)
 	// Metronome (row 23, standalone label)
 	add(23, 23, 3, 13, push3.ButtonMetronome)
@@ -160,12 +169,39 @@ func init() {
 func (m model) renderLayout() string {
 	lines := loadTemplate()
 
-	// Stamp encoder values.
+	// Stamp track encoder values (1-8).
 	for i := range 8 {
 		enc := push3.EncoderID(i + 1)
 		val := fmt.Sprintf("%d", m.encoders[enc])
 		col := 31 + i*6
 		putStr(lines, 1, col, fmt.Sprintf(" %-2s", val))
+	}
+
+	// Stamp Volume encoder value into the Vol box (rows 8-10, cols 7-13).
+	if v := m.encoders[push3.EncoderVolume]; v != 0 {
+		putStr(lines, 9, 7, fmt.Sprintf(" %5d ", v))
+	}
+	if m.buttons[push3.ButtonVolumePress] {
+		putStr(lines, 10, 7, " Press ")
+	}
+
+	// Stamp Jog wheel value and action into the Jog box (rows 7-11, cols 92-99).
+	if v := m.encoders[push3.EncoderJog]; v != 0 {
+		putStr(lines, 8, 92, fmt.Sprintf(" %6d ", v))
+	}
+	// Show active jog action.
+	switch {
+	case m.buttons[push3.ButtonJogClick]:
+		putStr(lines, 10, 92, " Click  ")
+	case m.buttons[push3.ButtonJogPushLeft]:
+		putStr(lines, 10, 92, " <Left  ")
+	case m.buttons[push3.ButtonJogPushRight]:
+		putStr(lines, 10, 92, " Right> ")
+	}
+
+	// Stamp Swing/Tempo value (single encoder, CC 14 rotation).
+	if v := m.encoders[push3.EncoderSwingTempo]; v != 0 {
+		putStr(lines, 17, 4, fmt.Sprintf("    %-5d ", v))
 	}
 
 	// Stamp pad fills.
@@ -216,12 +252,32 @@ func (m model) renderLayout() string {
 		addHighlight(tsRow, tsLeft, tsWidth, touchStripActiveStyle)
 	}
 
-	// Encoder highlights.
+	// Track encoder highlights (row 1).
 	for i := range 8 {
 		enc := push3.EncoderID(i + 1)
 		if m.touched[enc] {
 			addHighlight(1, 31+i*6, 3, encTouchedStyle)
 		}
+	}
+
+	// Volume encoder highlight (inner box rows 8-10, cols 7-13).
+	if m.touched[push3.EncoderVolume] {
+		for r := 8; r <= 10; r++ {
+			addHighlight(r, 7, 7, encTouchedStyle)
+		}
+	}
+
+	// Jog wheel highlight (inner box rows 7-11, cols 92-99).
+	if m.touched[push3.EncoderJog] {
+		for r := 7; r <= 11; r++ {
+			addHighlight(r, 92, 8, encTouchedStyle)
+		}
+	}
+
+	// Swing/Tempo encoder highlight (rows 17-18, cols 4-14).
+	if m.touched[push3.EncoderSwingTempo] {
+		addHighlight(17, 4, 10, encTouchedStyle)
+		addHighlight(18, 4, 10, encTouchedStyle)
 	}
 
 	// Button highlights — cover all rows of the button box.

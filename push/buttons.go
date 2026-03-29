@@ -84,6 +84,9 @@ var allButtonCCs = []uint8{
 
 	// Encoder presses
 	byte(push3.ButtonVolumePress),
+	// Note: ButtonSwingTempoPress (CC 15) is NOT listed here because CC 15
+	// is handled as EncoderSwingTempo rotation first. The click is detected
+	// by value 127 on CC 15.
 
 	// Jog wheel
 	byte(push3.ButtonJogClick),

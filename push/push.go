@@ -191,6 +191,14 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 
+		// Swing/Tempo encoder click (CC 15 sends val=127 press, val=0 release).
+		if cc == byte(push3.ButtonSwingTempoPress) {
+			if p.OnButton != nil {
+				p.OnButton(push3.ButtonSwingTempoPress, value > 0)
+			}
+			return
+		}
+
 		// Encoder rotation.
 		if enc, ok := push3.EncoderFromCC(cc); ok {
 			if p.OnEncoder != nil {

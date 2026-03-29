@@ -26,7 +26,7 @@ func TestIsButtonCC(t *testing.T) {
 		{"encoder CC 71", 71, false},
 		{"encoder CC 79", 79, false},
 		{"encoder CC 14", 14, false},
-		{"encoder CC 15", 15, false},
+		{"encoder CC 15 (swing/tempo click)", 15, false},
 
 		// Random CCs
 		{"cc 0", 0, false},
@@ -51,7 +51,7 @@ func TestEncoderFromTouchNote(t *testing.T) {
 		{"track 1", 0, push3.EncoderTrack1, true},
 		{"track 8", 7, push3.EncoderTrack8, true},
 		{"volume", 8, push3.EncoderVolume, true},
-		{"tempo", 10, push3.EncoderTempo, true},
+		{"tempo", 10, push3.EncoderSwingTempo, true},
 		{"jog", 11, push3.EncoderJog, true},
 		{"unused 9", 9, 0, false},
 		{"out of range", 12, 0, false},

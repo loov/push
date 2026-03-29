@@ -11,7 +11,7 @@ func encoderFromTouchNote(note uint8) (push3.EncoderID, bool) {
 	case note == 8:
 		return push3.EncoderVolume, true
 	case note == 10:
-		return push3.EncoderTempo, true // Tempo and Swing share touch note 10
+		return push3.EncoderSwingTempo, true
 	case note == 11:
 		return push3.EncoderJog, true
 	default:

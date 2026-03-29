@@ -41,10 +41,9 @@ const (
 	EncoderTrack6
 	EncoderTrack7
 	EncoderTrack8
-	EncoderVolume // Large encoder on the left
-	EncoderTempo  // Left half of Swing/Tempo encoder
-	EncoderSwing  // Right half of Swing/Tempo encoder
-	EncoderJog    // Jog wheel on the right
+	EncoderVolume    // Large encoder on the left
+	EncoderSwingTempo // Swing/Tempo encoder: rotation=CC 14, click=CC 15
+	EncoderJog       // Jog wheel on the right
 )
 
 // EncoderCC returns the MIDI CC number for this encoder's rotation.
@@ -54,16 +53,15 @@ func (e EncoderID) EncoderCC() uint8 {
 		return 70 + uint8(e) // CC 71-78
 	case e == EncoderVolume:
 		return 79
-	case e == EncoderTempo:
-		return 14
-	case e == EncoderSwing:
-		return 15
+	case e == EncoderSwingTempo:
+		return 14 // Rotation is CC 14; click sends CC 15
 	case e == EncoderJog:
 		return 70
 	default:
 		return 0
 	}
 }
+
 
 // EncoderFromCC returns the encoder for a given CC number.
 // Returns ok=false if the CC doesn't map to an encoder.
@@ -74,9 +72,7 @@ func EncoderFromCC(cc uint8) (EncoderID, bool) {
 	case cc == 79:
 		return EncoderVolume, true
 	case cc == 14:
-		return EncoderTempo, true
-	case cc == 15:
-		return EncoderSwing, true
+		return EncoderSwingTempo, true
 	case cc == 70:
 		return EncoderJog, true
 	default:
@@ -94,9 +90,9 @@ const (
 	TouchTrack6 uint8 = 5
 	TouchTrack7 uint8 = 6
 	TouchTrack8 uint8 = 7
-	TouchVolume uint8 = 8
+	TouchVolume     uint8 = 8
 	// Note 9 is unused.
-	TouchTempo uint8 = 10 // Tempo and Swing share the same physical knob.
+	TouchSwingTempo uint8 = 10 // Swing/Tempo encoder touch.
 	TouchJog        uint8 = 11
 	TouchTouchStrip  uint8 = 12
 	TouchDPadCenter  uint8 = 13
@@ -112,8 +108,8 @@ func (e EncoderID) EncoderTouchNote() uint8 {
 		return TouchTrack1 + uint8(e) - 1
 	case e == EncoderVolume:
 		return TouchVolume
-	case e == EncoderTempo, e == EncoderSwing:
-		return TouchTempo
+	case e == EncoderSwingTempo:
+		return TouchSwingTempo
 	case e == EncoderJog:
 		return TouchJog
 	default:
@@ -200,7 +196,8 @@ const (
 	ButtonSelect ButtonID = 48
 
 	// Encoder presses
-	ButtonVolumePress ButtonID = 111 // Volume encoder click (was incorrectly ButtonBrowse)
+	ButtonVolumePress    ButtonID = 111 // Volume encoder click
+	ButtonSwingTempoPress ButtonID = 15  // Swing/Tempo encoder click (CC 15)
 
 	// Jog wheel actions (discovered via push3-discover)
 	ButtonJogClick     ButtonID = 94 // Press down
