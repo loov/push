@@ -1,0 +1,200 @@
+// Package push3 defines shared vocabulary types for the logic-push3 application.
+package push3
+
+// Color represents an RGB color for Push 3 LEDs and display.
+type Color struct {
+	R, G, B uint8
+}
+
+// PadPosition identifies a pad on the 8x8 grid.
+type PadPosition struct {
+	Row, Col uint8 // 0-7 each
+}
+
+// PadNote returns the MIDI note number for this pad position.
+// Push 3 mapping: note = 92 - row*8 + col
+func (p PadPosition) PadNote() uint8 {
+	return 92 - p.Row*8 + p.Col
+}
+
+// PadPositionFromNote converts a MIDI note (36-99) to a pad position.
+// Returns ok=false if the note is outside the pad range.
+func PadPositionFromNote(note uint8) (PadPosition, bool) {
+	if note < 36 || note > 99 {
+		return PadPosition{}, false
+	}
+	row := (92 - note) / 8
+	col := note - (92 - row*8)
+	return PadPosition{Row: row, Col: col}, true
+}
+
+// EncoderID identifies one of the rotary encoders.
+type EncoderID uint8
+
+const (
+	EncoderTrack1 EncoderID = iota + 1
+	EncoderTrack2
+	EncoderTrack3
+	EncoderTrack4
+	EncoderTrack5
+	EncoderTrack6
+	EncoderTrack7
+	EncoderTrack8
+	EncoderMaster
+	EncoderTempo
+	EncoderSwing
+)
+
+// EncoderCC returns the MIDI CC number for this encoder's rotation.
+func (e EncoderID) EncoderCC() uint8 {
+	switch {
+	case e >= EncoderTrack1 && e <= EncoderTrack8:
+		return 70 + uint8(e) // CC 71-78
+	case e == EncoderMaster:
+		return 79
+	case e == EncoderTempo:
+		return 14
+	case e == EncoderSwing:
+		return 15
+	default:
+		return 0
+	}
+}
+
+// EncoderFromCC returns the encoder for a given CC number.
+// Returns ok=false if the CC doesn't map to an encoder.
+func EncoderFromCC(cc uint8) (EncoderID, bool) {
+	switch {
+	case cc >= 71 && cc <= 78:
+		return EncoderID(cc - 70), true
+	case cc == 79:
+		return EncoderMaster, true
+	case cc == 14:
+		return EncoderTempo, true
+	case cc == 15:
+		return EncoderSwing, true
+	default:
+		return 0, false
+	}
+}
+
+// EncoderTouchNote returns the MIDI note for this encoder's touch sensor.
+func (e EncoderID) EncoderTouchNote() uint8 {
+	switch {
+	case e >= EncoderTrack1 && e <= EncoderTrack8:
+		return uint8(e) - 1 // Notes 0-7
+	case e == EncoderMaster:
+		return 8
+	case e == EncoderSwing:
+		return 9
+	case e == EncoderTempo:
+		return 10
+	default:
+		return 0
+	}
+}
+
+// DecodeRelative converts a two's complement CC value to a signed delta.
+// Values 1-63 = clockwise, 65-127 = counter-clockwise.
+func DecodeRelative(value uint8) int {
+	if value < 64 {
+		return int(value)
+	}
+	return int(value) - 128
+}
+
+// ButtonID identifies a Push 3 button by its CC number.
+type ButtonID uint8
+
+// Push 3 button CC assignments.
+const (
+	ButtonPlay    ButtonID = 85
+	ButtonRecord  ButtonID = 86
+	ButtonStop    ButtonID = 29
+	ButtonDuplicate ButtonID = 88
+
+	ButtonUp      ButtonID = 46
+	ButtonDown    ButtonID = 47
+	ButtonLeft    ButtonID = 44
+	ButtonRight   ButtonID = 45
+
+	ButtonShift   ButtonID = 49
+	ButtonSelect  ButtonID = 48
+	ButtonNote    ButtonID = 50
+	ButtonSession ButtonID = 51
+
+	ButtonQuantize ButtonID = 116
+	ButtonDelete   ButtonID = 118
+	ButtonUndo     ButtonID = 119
+
+	ButtonDevice  ButtonID = 110
+	ButtonBrowse  ButtonID = 111
+	ButtonMix     ButtonID = 112
+	ButtonClip    ButtonID = 113
+
+	ButtonMute    ButtonID = 60
+	ButtonSolo    ButtonID = 61
+
+	// Upper display buttons (above encoders)
+	ButtonUpper1  ButtonID = 102
+	ButtonUpper2  ButtonID = 103
+	ButtonUpper3  ButtonID = 104
+	ButtonUpper4  ButtonID = 105
+	ButtonUpper5  ButtonID = 106
+	ButtonUpper6  ButtonID = 107
+	ButtonUpper7  ButtonID = 108
+	ButtonUpper8  ButtonID = 109
+
+	// Lower display buttons (below encoders)
+	ButtonLower1  ButtonID = 20
+	ButtonLower2  ButtonID = 21
+	ButtonLower3  ButtonID = 22
+	ButtonLower4  ButtonID = 23
+	ButtonLower5  ButtonID = 24
+	ButtonLower6  ButtonID = 25
+	ButtonLower7  ButtonID = 26
+	ButtonLower8  ButtonID = 27
+
+	ButtonMaster  ButtonID = 28
+
+	// Time division buttons
+	ButtonDiv1_4   ButtonID = 36
+	ButtonDiv1_4t  ButtonID = 37
+	ButtonDiv1_8   ButtonID = 38
+	ButtonDiv1_8t  ButtonID = 39
+	ButtonDiv1_16  ButtonID = 40
+	ButtonDiv1_16t ButtonID = 41
+	ButtonDiv1_32  ButtonID = 42
+	ButtonDiv1_32t ButtonID = 43
+)
+
+// Well-known colors from the Push 3 default palette.
+var (
+	ColorBlack     = Color{0, 0, 0}
+	ColorWhite     = Color{255, 255, 255}
+	ColorRed       = Color{255, 0, 0}
+	ColorGreen     = Color{0, 255, 0}
+	ColorBlue      = Color{0, 0, 255}
+	ColorYellow    = Color{255, 255, 0}
+	ColorOrange    = Color{255, 153, 0}
+	ColorPurple    = Color{153, 0, 255}
+	ColorCyan      = Color{0, 255, 255}
+	ColorPink      = Color{255, 0, 255}
+	ColorLime      = Color{153, 255, 0}
+	ColorGray      = Color{128, 128, 128}
+	ColorDarkGray  = Color{30, 30, 30}
+)
+
+// Default palette velocity indices.
+const (
+	PaletteBlack   uint8 = 0
+	PaletteOrange  uint8 = 3
+	PaletteYellow  uint8 = 8
+	PaletteTurquoise uint8 = 15
+	PalettePurple  uint8 = 22
+	PalettePink    uint8 = 25
+	PaletteWhite   uint8 = 122
+	PaletteBlue    uint8 = 125
+	PaletteGreen   uint8 = 126
+	PaletteRed     uint8 = 127
+)
