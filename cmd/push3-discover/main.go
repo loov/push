@@ -26,8 +26,8 @@ type item struct {
 }
 
 var itemsToDiscover = []item{
-	// Volume encoder press — capture all events to see exact val sequence
-	{"Volume encoder: PRESS and RELEASE (click down, then release)", true},
+	// Pad sliding — capture all raw events
+	{"Pad: SLIDE finger from one pad row to the next (up or down)", true},
 
 	// Buttons (auto-advance)
 	{"Sets", false}, {"Setup", false}, {"Learn", false}, {"User", false},

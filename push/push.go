@@ -137,6 +137,10 @@ func (p *Push3) handleMIDI(data []byte) {
 
 		// Pad release.
 		if pos, ok := push3.PadPositionFromNote(note); ok {
+			// During a slide, Push 3 sends:
+			//   Note On A → Note Off A → (CC/pressure data) → Note Off B
+			// No Note On B is sent. We detect the slide by comparing the
+			// Note Off note against the active pad on this channel.
 			p.padActive[ch] = false
 			if p.OnPad != nil {
 				p.OnPad(pos, 0, false)
