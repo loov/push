@@ -13,6 +13,7 @@
 /push3-tui
 /push3-discover
 /push3-padlog
+/push3-plasma
 
 # Go workspace
 go.work
