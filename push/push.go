@@ -227,7 +227,12 @@ func (p *Push3) handleMIDI(data []byte) {
 		// Button press/release (CC-based).
 		if isButtonCC(cc) {
 			if p.OnButton != nil {
-				p.OnButton(push3.ButtonID(cc), value > 0)
+				pressed := value > 0
+				// Volume press (CC 111) is inverted: val=0 press, val=127 release.
+				if cc == byte(push3.ButtonVolumePress) {
+					pressed = value == 0
+				}
+				p.OnButton(push3.ButtonID(cc), pressed)
 			}
 			return
 		}

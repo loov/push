@@ -26,10 +26,8 @@ type item struct {
 }
 
 var itemsToDiscover = []item{
-	// Single pad — capture all events
-	{"Pad: LIGHT TAP (press and release quickly)", true},
-	{"Pad: HARD PRESS (press firmly and hold, then release)", true},
-	{"Pad: PRESS AND SLIDE PRESSURE (press and vary pressure)", true},
+	// Volume encoder press — capture all events to see exact val sequence
+	{"Volume encoder: PRESS and RELEASE (click down, then release)", true},
 
 	// Buttons (auto-advance)
 	{"Sets", false}, {"Setup", false}, {"Learn", false}, {"User", false},
@@ -133,9 +131,8 @@ func main() {
 	var mu sync.Mutex
 	idx := 0
 	waitingForRelease := false
-	var captured []capturedItem     // completed items
-	var currentEvents []event       // events for current captureAll item
-	seen := map[string]bool{}       // dedup events for captureAll mode
+	var captured []capturedItem // completed items
+	var currentEvents []event  // events for current captureAll item
 
 	printPrompt := func() {
 		if idx < len(itemsToDiscover) {
@@ -147,7 +144,6 @@ func main() {
 			writeln("")
 			writeln(">>> [%d/%d] %s%s", idx+1, len(itemsToDiscover), it.name, mode)
 			currentEvents = nil
-			seen = map[string]bool{}
 		} else {
 			writeln("")
 			writeln("=== All items discovered! ===")
@@ -216,13 +212,9 @@ func main() {
 		it := itemsToDiscover[idx]
 
 		if it.captureAll {
-			// Show every unique event type.
-			key := fmt.Sprintf("%s-%d", ev.kind, ev.number)
-			if !seen[key] {
-				seen[key] = true
-				currentEvents = append(currentEvents, *ev)
-				writeln("    %s", ev)
-			}
+			// Show every event (no dedup — we need to see exact val sequences).
+			currentEvents = append(currentEvents, *ev)
+			writeln("    %s", ev)
 			return
 		}
 
