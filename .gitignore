@@ -10,6 +10,7 @@
 
 # Commands
 /logic-push3
+/push3-tui
 
 # Go workspace
 go.work
