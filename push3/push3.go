@@ -84,19 +84,33 @@ func EncoderFromCC(cc uint8) (EncoderID, bool) {
 	}
 }
 
+// Encoder touch MIDI note numbers (discovered via cmd/push3-discover).
+const (
+	TouchTrack1 uint8 = 0
+	TouchTrack2 uint8 = 1
+	TouchTrack3 uint8 = 2
+	TouchTrack4 uint8 = 3
+	TouchTrack5 uint8 = 4
+	TouchTrack6 uint8 = 5
+	TouchTrack7 uint8 = 6
+	TouchTrack8 uint8 = 7
+	TouchVolume uint8 = 8
+	// Note 9 is unused.
+	TouchTempo uint8 = 10 // Tempo and Swing share the same physical knob.
+	TouchJog   uint8 = 11
+)
+
 // EncoderTouchNote returns the MIDI note for this encoder's touch sensor.
 func (e EncoderID) EncoderTouchNote() uint8 {
 	switch {
 	case e >= EncoderTrack1 && e <= EncoderTrack8:
-		return uint8(e) - 1 // Notes 0-7
+		return TouchTrack1 + uint8(e) - 1
 	case e == EncoderVolume:
-		return 8
-	case e == EncoderTempo:
-		return 10
-	case e == EncoderSwing:
-		return 10 // Shares touch note with Tempo (same physical knob)
+		return TouchVolume
+	case e == EncoderTempo, e == EncoderSwing:
+		return TouchTempo
 	case e == EncoderJog:
-		return 11
+		return TouchJog
 	default:
 		return 0
 	}
