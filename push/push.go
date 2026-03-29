@@ -22,12 +22,13 @@ type Push3 struct {
 	OnPad          func(pos push3.PadPosition, velocity uint8, pressed bool)
 	OnEncoder      func(id push3.EncoderID, delta int)
 	OnEncoderTouch func(id push3.EncoderID, touched bool)
+	OnRawMIDI      func(data []byte)
 }
 
 // Push 3 MIDI port name patterns.
 const (
-	SourceName = "Ableton Push 3 User Port"
-	DestName   = "Ableton Push 3 User Port"
+	SourceName = "Ableton Push 3 Live Port"
+	DestName   = "Ableton Push 3 Live Port"
 )
 
 // Connect finds the Push 3 MIDI ports and starts listening for events.
@@ -58,6 +59,9 @@ func Connect(client *midi.Client, sourceName, destName string) (*Push3, error) {
 }
 
 func (p *Push3) handleMIDI(data []byte) {
+	if p.OnRawMIDI != nil {
+		p.OnRawMIDI(data)
+	}
 	if len(data) < 2 {
 		return
 	}

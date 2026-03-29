@@ -20,14 +20,15 @@ func main() {
 	source := flag.String("source", push.SourceName, "Push 3 MIDI source name")
 	dest := flag.String("dest", push.DestName, "Push 3 MIDI destination name")
 	colorDemo := flag.Bool("colors", false, "cycle pad colors through palette on startup")
+	raw := flag.Bool("raw", false, "print raw MIDI bytes for all messages")
 	flag.Parse()
 
-	if err := run(context.Background(), *source, *dest, *colorDemo); err != nil {
+	if err := run(context.Background(), *source, *dest, *colorDemo, *raw); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, sourceName, destName string, colorDemo bool) error {
+func run(ctx context.Context, sourceName, destName string, colorDemo, raw bool) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
@@ -40,6 +41,16 @@ func run(ctx context.Context, sourceName, destName string, colorDemo bool) error
 	p, err := push.Connect(client, sourceName, destName)
 	if err != nil {
 		return fmt.Errorf("connecting to Push 3: %w", err)
+	}
+
+	if raw {
+		p.OnRawMIDI = func(data []byte) {
+			// Filter out Active Sensing (0xFE) heartbeat.
+			if len(data) == 1 && data[0] == 0xFE {
+				return
+			}
+			log.Printf("[RAW] % X", data)
+		}
 	}
 
 	p.OnButton = func(id push3.ButtonID, pressed bool) {

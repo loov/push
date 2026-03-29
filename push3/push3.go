@@ -23,8 +23,8 @@ func PadPositionFromNote(note uint8) (PadPosition, bool) {
 	if note < 36 || note > 99 {
 		return PadPosition{}, false
 	}
-	row := (92 - note) / 8
-	col := note - (92 - row*8)
+	row := (99 - note) / 8
+	col := (note - 36) % 8
 	return PadPosition{Row: row, Col: col}, true
 }
 
