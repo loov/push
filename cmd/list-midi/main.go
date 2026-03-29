@@ -15,7 +15,7 @@ func main() {
 	}
 	fmt.Println("=== MIDI Sources (inputs we can read from) ===")
 	for i, s := range sources {
-		fmt.Printf("  [%d] %s\n", i, s.Name())
+		fmt.Printf("  [%d] name=%q display=%q manufacturer=%q\n", i, s.Name(), s.DisplayName(), s.Manufacturer())
 	}
 
 	dests, err := midi.Destinations()
@@ -24,6 +24,6 @@ func main() {
 	}
 	fmt.Println("\n=== MIDI Destinations (outputs we can write to) ===")
 	for i, d := range dests {
-		fmt.Printf("  [%d] %s\n", i, d.Name())
+		fmt.Printf("  [%d] name=%q display=%q manufacturer=%q\n", i, d.Name(), d.DisplayName(), d.Manufacturer())
 	}
 }

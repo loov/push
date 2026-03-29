@@ -32,16 +32,28 @@ type Source struct {
 	source coremidi.Source
 }
 
-// Name returns the source's display name.
+// Name returns the source's name.
 func (s Source) Name() string { return s.source.Name() }
+
+// DisplayName returns the source's display name.
+func (s Source) DisplayName() string { return s.source.DisplayName() }
+
+// Manufacturer returns the source's manufacturer.
+func (s Source) Manufacturer() string { return s.source.Manufacturer() }
 
 // Destination represents a MIDI output destination (something we write to).
 type Destination struct {
 	dest coremidi.Destination
 }
 
-// Name returns the destination's display name.
+// Name returns the destination's name.
 func (d Destination) Name() string { return d.dest.Name() }
+
+// DisplayName returns the destination's display name.
+func (d Destination) DisplayName() string { return d.dest.DisplayName() }
+
+// Manufacturer returns the destination's manufacturer.
+func (d Destination) Manufacturer() string { return d.dest.Manufacturer() }
 
 // Sources returns all available MIDI input sources.
 func Sources() ([]Source, error) {
@@ -69,38 +81,38 @@ func Destinations() ([]Destination, error) {
 	return result, nil
 }
 
-// FindSource finds a source whose name contains the given substring.
+// FindSource finds a source whose name or display name contains the given substring.
 func FindSource(name string) (Source, error) {
 	sources, err := Sources()
 	if err != nil {
 		return Source{}, err
 	}
 	for _, s := range sources {
-		if strings.Contains(s.Name(), name) {
+		if strings.Contains(s.Name(), name) || strings.Contains(s.DisplayName(), name) {
 			return s, nil
 		}
 	}
 	available := make([]string, len(sources))
 	for i, s := range sources {
-		available[i] = s.Name()
+		available[i] = s.DisplayName()
 	}
 	return Source{}, fmt.Errorf("midi: source %q not found, available: %v", name, available)
 }
 
-// FindDestination finds a destination whose name contains the given substring.
+// FindDestination finds a destination whose name or display name contains the given substring.
 func FindDestination(name string) (Destination, error) {
 	dests, err := Destinations()
 	if err != nil {
 		return Destination{}, err
 	}
 	for _, d := range dests {
-		if strings.Contains(d.Name(), name) {
+		if strings.Contains(d.Name(), name) || strings.Contains(d.DisplayName(), name) {
 			return d, nil
 		}
 	}
 	available := make([]string, len(dests))
 	for i, d := range dests {
-		available[i] = d.Name()
+		available[i] = d.DisplayName()
 	}
 	return Destination{}, fmt.Errorf("midi: destination %q not found, available: %v", name, available)
 }

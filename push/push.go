@@ -26,8 +26,8 @@ type Push3 struct {
 
 // Push 3 MIDI port name patterns.
 const (
-	SourceName = "Ableton Push 3"
-	DestName   = "Ableton Push 3"
+	SourceName = "Ableton Push 3 User Port"
+	DestName   = "Ableton Push 3 User Port"
 )
 
 // Connect finds the Push 3 MIDI ports and starts listening for events.
