@@ -42,26 +42,47 @@ var allButtonCCs = []uint8{
 	byte(push3.ButtonMute),
 	byte(push3.ButtonSolo),
 
-	// Transport
-	byte(push3.ButtonPlay),
+	// Transport / left side
+	byte(push3.ButtonTapTempo),
+	byte(push3.ButtonMetronome),
+	byte(push3.ButtonQuantize),
+	byte(push3.ButtonFixedLen),
+	byte(push3.ButtonAutomate),
+	byte(push3.ButtonNew),
+	byte(push3.ButtonCapture),
 	byte(push3.ButtonRecord),
-	byte(push3.ButtonDuplicate),
+	byte(push3.ButtonPlay),
 
-	// Navigation
+	// Right side
+	byte(push3.ButtonNote),
+	byte(push3.ButtonSessionR),
+	byte(push3.ButtonScale),
+	byte(push3.ButtonLayout),
+	byte(push3.ButtonRepeat),
+	byte(push3.ButtonAccent),
+	byte(push3.ButtonDoubleLoop),
+	byte(push3.ButtonDuplicate),
+	byte(push3.ButtonConvert),
+	byte(push3.ButtonDelete),
+
+	// D-pad
 	byte(push3.ButtonUp),
 	byte(push3.ButtonDown),
 	byte(push3.ButtonLeft),
 	byte(push3.ButtonRight),
 
+	// Navigation
+	byte(push3.ButtonOctaveUp),
+	byte(push3.ButtonOctaveDown),
+	byte(push3.ButtonPageLeft),
+	byte(push3.ButtonPageRight),
+
 	// Bottom-right
 	byte(push3.ButtonShift),
 	byte(push3.ButtonSelect),
 
-	// Mode
-	byte(push3.ButtonNote),
+	// Browse
 	byte(push3.ButtonBrowse),
-	byte(push3.ButtonQuantize),
-	byte(push3.ButtonDelete),
 
 	// Upper display buttons
 	byte(push3.ButtonUpper1),

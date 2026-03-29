@@ -127,35 +127,54 @@ const (
 	ButtonSwap ButtonID = 33
 
 	// Bottom-left row
-	ButtonLock    ButtonID = 83
+	ButtonLock     ButtonID = 83
 	ButtonStopClip ButtonID = 29
-	ButtonMute    ButtonID = 60
-	ButtonSolo    ButtonID = 61
+	ButtonMute     ButtonID = 60
+	ButtonSolo     ButtonID = 61
 
-	// Transport
-	ButtonPlay      ButtonID = 85
-	ButtonRecord    ButtonID = 86
-	ButtonDuplicate ButtonID = 88
+	// Transport / left side
+	ButtonTapTempo   ButtonID = 3
+	ButtonMetronome  ButtonID = 9
+	ButtonQuantize   ButtonID = 116
+	ButtonFixedLen   ButtonID = 90
+	ButtonAutomate   ButtonID = 89
+	ButtonNew        ButtonID = 92
+	ButtonCapture    ButtonID = 65
+	ButtonRecord     ButtonID = 86
+	ButtonPlay       ButtonID = 85
 
-	// Navigation (D-pad)
+	// Right side
+	ButtonNote       ButtonID = 50
+	ButtonSessionR   ButtonID = 51 // Session button on the right side
+	ButtonScale      ButtonID = 58
+	ButtonLayout     ButtonID = 31
+	ButtonRepeat     ButtonID = 56
+	ButtonAccent     ButtonID = 57
+	ButtonDoubleLoop ButtonID = 117
+	ButtonDuplicate  ButtonID = 88
+	ButtonConvert    ButtonID = 35
+	ButtonDelete     ButtonID = 118
+
+	// D-pad
 	ButtonUp    ButtonID = 46
 	ButtonDown  ButtonID = 47
 	ButtonLeft  ButtonID = 44
 	ButtonRight ButtonID = 45
 
+	// Navigation (Octave/Page)
+	ButtonOctaveUp   ButtonID = 55
+	ButtonOctaveDown ButtonID = 54
+	ButtonPageLeft   ButtonID = 62
+	ButtonPageRight  ButtonID = 63
+
 	// Bottom-right
 	ButtonShift  ButtonID = 49
 	ButtonSelect ButtonID = 48
 
-	// Right-side mode buttons
-	ButtonNote   ButtonID = 50
+	// Browse
 	ButtonBrowse ButtonID = 111
 
-	// Function
-	ButtonQuantize ButtonID = 116
-	ButtonDelete   ButtonID = 118
-
-	// Upper display buttons (above encoders)
+	// Upper display buttons
 	ButtonUpper1 ButtonID = 102
 	ButtonUpper2 ButtonID = 103
 	ButtonUpper3 ButtonID = 104
@@ -165,7 +184,7 @@ const (
 	ButtonUpper7 ButtonID = 108
 	ButtonUpper8 ButtonID = 109
 
-	// Lower display buttons (below encoders)
+	// Lower display buttons
 	ButtonLower1 ButtonID = 20
 	ButtonLower2 ButtonID = 21
 	ButtonLower3 ButtonID = 22
@@ -177,7 +196,7 @@ const (
 
 	ButtonMaster ButtonID = 28
 
-	// Time division buttons
+	// Time division / scene buttons
 	ButtonDiv1_4   ButtonID = 36
 	ButtonDiv1_4t  ButtonID = 37
 	ButtonDiv1_8   ButtonID = 38

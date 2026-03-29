@@ -87,34 +87,68 @@ func init() {
 	add(13, 15, 81, 5, push3.ButtonMaster)
 
 	// ── Left pad-area buttons ──
-	// Quantize: row 24 (standalone label)
+	// Swing/Tempo box (rows 16-18)
+	// Tap/Tempo box (rows 19-22)
+	add(16, 18, 3, 12, push3.ButtonTapTempo) // Swing/Tempo uses same button?
+	add(19, 22, 3, 12, push3.ButtonTapTempo)
+	// Metronome (row 23, standalone label)
+	add(23, 23, 3, 13, push3.ButtonMetronome)
+	// Quantize (row 24, standalone label)
 	add(24, 24, 3, 12, push3.ButtonQuantize)
-	// Record: rows 34-37 (box)
-	add(34, 37, 3, 12, push3.ButtonRecord)
-	// Play: rows 37-40 (box) — actually rows 38-40
-	add(38, 40, 3, 12, push3.ButtonPlay)
+	// Fixed Length (row 26)
+	add(26, 26, 3, 14, push3.ButtonFixedLen)
+	// Automate (row 27)
+	add(27, 27, 3, 12, push3.ButtonAutomate)
+	// New (rows 29-31)
+	add(29, 31, 3, 14, push3.ButtonNew)
+	// Capture (rows 31-33)
+	add(31, 33, 3, 14, push3.ButtonCapture)
+	// Record (rows 34-37)
+	add(34, 37, 3, 14, push3.ButtonRecord)
+	// Play (rows 38-40)
+	add(38, 40, 3, 14, push3.ButtonPlay)
 
 	// ── Scene/repeat buttons (right col, rows 16-40) ──
-	// Each scene button is a 3-row box: border, content, border.
 	sceneIDs := [8]push3.ButtonID{
 		push3.ButtonDiv1_32t, push3.ButtonDiv1_32,
 		push3.ButtonDiv1_16t, push3.ButtonDiv1_16,
 		push3.ButtonDiv1_8t, push3.ButtonDiv1_8,
 		push3.ButtonDiv1_4t, push3.ButtonDiv1_4,
 	}
-	sceneRows := [8]int{16, 19, 22, 25, 28, 31, 34, 37} // top border row of each
+	sceneRows := [8]int{16, 19, 22, 25, 28, 31, 34, 37}
 	for i, id := range sceneIDs {
 		add(sceneRows[i], sceneRows[i]+2, 81, 5, id)
 	}
 
-	// ── Right side buttons ──
+	// ── D-pad (rows 13-17, cols 92-99) ──
+	add(14, 14, 93, 5, push3.ButtonUp)
+	add(15, 15, 91, 1, push3.ButtonLeft)
+	add(15, 15, 97, 1, push3.ButtonRight)
+	add(16, 16, 93, 5, push3.ButtonDown)
+
+	// ── Right side button pairs ──
 	// Note/Session (rows 19-21)
 	add(19, 21, 90, 6, push3.ButtonNote)
-	add(19, 21, 97, 6, push3.ButtonSession)
-	// 2Loop/Dup (rows 26-27)
-	add(26, 27, 90, 6, push3.ButtonDuplicate)
-	// Delete (rows 28-29)
+	add(19, 21, 97, 6, push3.ButtonSessionR)
+	// Scale/Layout (rows 21-23)
+	add(21, 23, 90, 6, push3.ButtonScale)
+	add(21, 23, 97, 6, push3.ButtonLayout)
+	// Repeat/Accent (rows 24-26)
+	add(24, 26, 90, 6, push3.ButtonRepeat)
+	add(24, 26, 97, 6, push3.ButtonAccent)
+	// 2Loop/Dup (rows 26-28)
+	add(26, 28, 90, 6, push3.ButtonDoubleLoop)
+	add(26, 28, 97, 6, push3.ButtonDuplicate)
+	// Conv/Del (rows 28-30)
+	add(28, 30, 90, 6, push3.ButtonConvert)
 	add(28, 30, 97, 6, push3.ButtonDelete)
+
+	// ── Nav pad (rows 32-36, cols 92-99) ──
+	add(33, 33, 93, 5, push3.ButtonOctaveUp)
+	add(34, 34, 91, 1, push3.ButtonPageLeft)
+	add(34, 34, 97, 1, push3.ButtonPageRight)
+	add(35, 35, 93, 5, push3.ButtonOctaveDown)
+
 	// Shift/Select (rows 38-40)
 	add(38, 40, 90, 6, push3.ButtonShift)
 	add(38, 40, 97, 6, push3.ButtonSelect)

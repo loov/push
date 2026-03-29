@@ -30,12 +30,13 @@ var buttonsToDiscover = []string{
 	// Bottom-right
 	"Master",
 	// Left side (top to bottom)
-	"Volume (press encoder)", "Swing/Tempo (press encoder)",
+	// Skipping encoder presses (Volume, Swing/Tempo) — handle separately.
 	"Tap Tempo", "Metronome", "Quantize",
 	"Fixed Length", "Automate",
 	"New", "Capture", "Record", "Play",
 	// Center
-	"Upper Display 1", "Upper Display 2", "Upper Display 3", "Upper Display 4",
+	// "Upper Display 1",
+	"Upper Display 2", "Upper Display 3", "Upper Display 4",
 	"Upper Display 5", "Upper Display 6", "Upper Display 7", "Upper Display 8",
 	"Lower Display 1", "Lower Display 2", "Lower Display 3", "Lower Display 4",
 	"Lower Display 5", "Lower Display 6", "Lower Display 7", "Lower Display 8",
@@ -57,11 +58,30 @@ var buttonsToDiscover = []string{
 	"Browse",
 }
 
+// Encoder rotation CCs to ignore (these fire when pressing encoder buttons).
+var encoderCCs = map[uint8]bool{
+	14: true, 15: true, // Tempo, Swing
+	71: true, 72: true, 73: true, 74: true, // Track 1-4
+	75: true, 76: true, 77: true, 78: true, // Track 5-8
+	79: true, // Master
+}
+
+// Pad notes to ignore (36-99 are pads, not buttons).
+func isPadNote(note uint8) bool {
+	return note >= 36 && note <= 99
+}
+
 type result struct {
 	name   string
 	kind   string // "CC" or "Note"
 	number int
 	ch     int
+}
+
+// print writes a line with \r\n for raw terminal mode.
+func print(format string, args ...any) {
+	s := fmt.Sprintf(format, args...)
+	fmt.Print(s + "\r\n")
 }
 
 func main() {
@@ -70,6 +90,13 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
+
+	// Switch terminal to raw mode for single-keystroke backspace.
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
 
 	client, err := midi.NewClient("push3-discover")
 	if err != nil {
@@ -82,9 +109,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Connected to %q\n", src.DisplayName())
-	fmt.Println("Press the prompted button on Push 3. Backspace to undo last. Ctrl+C to exit.")
-	fmt.Println()
+	print("Connected to %q", src.DisplayName())
+	print("Press the prompted button on Push 3. Backspace to undo. Ctrl+C to exit.")
+	print("")
 
 	var mu sync.Mutex
 	idx := 0
@@ -93,22 +120,17 @@ func main() {
 
 	printPrompt := func() {
 		if idx < len(buttonsToDiscover) {
-			fmt.Printf("\n>>> [%d/%d] Press: %s\n", idx+1, len(buttonsToDiscover), buttonsToDiscover[idx])
+			print("")
+			print(">>> [%d/%d] Press: %s", idx+1, len(buttonsToDiscover), buttonsToDiscover[idx])
 		} else {
-			fmt.Println("\n=== All buttons discovered! ===")
+			print("")
+			print("=== All buttons discovered! ===")
 			printResults(results)
 		}
 	}
 
 	// Keyboard listener for backspace (undo).
 	go func() {
-		// Switch terminal to raw mode to get single keystrokes.
-		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-		if err != nil {
-			return
-		}
-		defer term.Restore(int(os.Stdin.Fd()), oldState)
-
 		buf := make([]byte, 1)
 		for {
 			_, err := os.Stdin.Read(buf)
@@ -123,7 +145,7 @@ func main() {
 					if len(results) > 0 {
 						removed := results[len(results)-1]
 						results = results[:len(results)-1]
-						fmt.Printf("\n    ↩ Undid: %s (%s %d)\n", removed.name, removed.kind, removed.number)
+						print("    ↩ Undid: %s (%s %d)", removed.name, removed.kind, removed.number)
 					}
 					printPrompt()
 				}
@@ -154,15 +176,21 @@ func main() {
 			if len(data) < 3 {
 				return
 			}
-			cc := int(data[1])
+			cc := data[1]
 			val := data[2]
+
+			// Ignore encoder rotation CCs.
+			if encoderCCs[cc] {
+				return
+			}
+
 			if val > 0 && !waitingForRelease {
 				name := ""
 				if idx < len(buttonsToDiscover) {
 					name = buttonsToDiscover[idx]
 				}
-				fmt.Printf("    %-25s  CC  %3d  (0x%02X)  ch=%d\n", name, cc, cc, ch)
-				results = append(results, result{name, "CC", cc, ch})
+				print("    %-25s  CC  %3d  (0x%02X)  ch=%d", name, cc, cc, ch)
+				results = append(results, result{name, "CC", int(cc), ch})
 				waitingForRelease = true
 			} else if val == 0 && waitingForRelease {
 				waitingForRelease = false
@@ -174,15 +202,20 @@ func main() {
 			if len(data) < 3 {
 				return
 			}
-			note := int(data[1])
+			note := data[1]
 			vel := data[2]
+
+			// Ignore pad notes.
+			if isPadNote(note) {
+				return
+			}
 			if vel > 0 && !waitingForRelease {
 				name := ""
 				if idx < len(buttonsToDiscover) {
 					name = buttonsToDiscover[idx]
 				}
-				fmt.Printf("    %-25s  Note %3d  (0x%02X)  vel=%d  ch=%d\n", name, note, note, vel, ch)
-				results = append(results, result{name, "Note", note, ch})
+				print("    %-25s  Note %3d  (0x%02X)  vel=%d  ch=%d", name, note, note, vel, ch)
+				results = append(results, result{name, "Note", int(note), ch})
 				waitingForRelease = true
 			} else if vel == 0 && waitingForRelease {
 				waitingForRelease = false
@@ -191,6 +224,9 @@ func main() {
 			}
 
 		case 0x80: // Note Off
+			if len(data) >= 2 && isPadNote(data[1]) {
+				return
+			}
 			if waitingForRelease {
 				waitingForRelease = false
 				idx++
@@ -203,13 +239,14 @@ func main() {
 	}
 
 	<-ctx.Done()
-	fmt.Println()
+	print("")
 	printResults(results)
 }
 
 func printResults(results []result) {
-	fmt.Println("\n── Results ──")
+	print("")
+	print("── Results ──")
 	for _, r := range results {
-		fmt.Printf("  %-25s  %4s  %3d  (0x%02X)  ch=%d\n", r.name, r.kind, r.number, r.number, r.ch)
+		print("  %-25s  %4s  %3d  (0x%02X)  ch=%d", r.name, r.kind, r.number, r.number, r.ch)
 	}
 }
