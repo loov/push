@@ -24,10 +24,10 @@ const (
 
 // MCU channel strip buttons (base + channel 0-7).
 const (
-	MCURecArm0  MCUButton = 0  // 0-7
-	MCUSolo0    MCUButton = 8  // 8-15
-	MCUMute0    MCUButton = 16 // 16-23
-	MCUSelect0  MCUButton = 24 // 24-31
+	MCURecArm0   MCUButton = 0  // 0-7
+	MCUSolo0     MCUButton = 8  // 8-15
+	MCUMute0     MCUButton = 16 // 16-23
+	MCUSelect0   MCUButton = 24 // 24-31
 	MCUVPotPush0 MCUButton = 32 // 32-39
 )
 
@@ -78,9 +78,9 @@ const (
 
 // MCU navigation.
 const (
-	MCUBankLeft    MCUButton = 68
-	MCUBankRight   MCUButton = 69
-	MCUChannelLeft MCUButton = 70
+	MCUBankLeft     MCUButton = 68
+	MCUBankRight    MCUButton = 69
+	MCUChannelLeft  MCUButton = 70
 	MCUChannelRight MCUButton = 71
 )
 
@@ -148,7 +148,7 @@ var MCUSysExPrefix = [3]byte{0x00, 0x00, 0x66}
 type MCUAssignMode uint8
 
 const (
-	MCUAssignModeUnknown    MCUAssignMode = iota
+	MCUAssignModeUnknown MCUAssignMode = iota
 	MCUAssignModeTrack
 	MCUAssignModeSend
 	MCUAssignModePan

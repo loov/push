@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+
 	"github.com/loov/logic-push3/push3"
 )
 
@@ -131,11 +132,11 @@ func init() {
 
 	// ── D-pad (rows 13-17) ──
 	// Each arrow is a single char; highlight just that character.
-	add(14, 14, 96, 1, push3.ButtonUp)    // ^ at col 96
-	add(15, 15, 94, 1, push3.ButtonLeft)  // < at col 94
+	add(14, 14, 96, 1, push3.ButtonUp)         // ^ at col 96
+	add(15, 15, 94, 1, push3.ButtonLeft)       // < at col 94
 	add(15, 15, 96, 1, push3.ButtonDPadCenter) // C at col 96
-	add(15, 15, 98, 1, push3.ButtonRight) // > at col 98
-	add(16, 16, 96, 1, push3.ButtonDown)  // v at col 96
+	add(15, 15, 98, 1, push3.ButtonRight)      // > at col 98
+	add(16, 16, 96, 1, push3.ButtonDown)       // v at col 96
 
 	// ── Right side button pairs ──
 	// Note/Session (rows 19-21)
@@ -230,7 +231,7 @@ func (m model) renderLayout() string {
 		if tsRow > tsBot {
 			tsRow = tsBot
 		}
-		putStr(lines, tsRow, tsLeft, "=====" )
+		putStr(lines, tsRow, tsLeft, "=====")
 	}
 
 	// Build highlight map: for each (row, col) store a style index.

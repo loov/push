@@ -20,9 +20,9 @@ type State struct {
 	AssignMode    push3.MCUAssignMode
 
 	// Modifier state from host LED feedback.
-	Flip                           bool
-	Zoom                           bool
-	Scrub                          bool
+	Flip                              bool
+	Zoom                              bool
+	Scrub                             bool
 	ModShift, ModCtrl, ModOpt, ModAlt bool
 }
 

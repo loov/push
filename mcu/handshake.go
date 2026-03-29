@@ -68,12 +68,12 @@ func EncodeKeepaliveAck(modelID byte) []byte {
 type SysExKind uint8
 
 const (
-	SysExUnknown      SysExKind = iota
-	SysExKeepalive              // Host ping (cmd 0x00)
-	SysExLCD                    // LCD text update (cmd 0x12)
-	SysExSerialReq              // Serial number request (cmd 0x1A)
-	SysExVPotRing               // V-Pot ring display (cmd 0x20)
-	SysExMetersDump             // Meter levels (cmd 0x10-0x17)
+	SysExUnknown    SysExKind = iota
+	SysExKeepalive            // Host ping (cmd 0x00)
+	SysExLCD                  // LCD text update (cmd 0x12)
+	SysExSerialReq            // Serial number request (cmd 0x1A)
+	SysExVPotRing             // V-Pot ring display (cmd 0x20)
+	SysExMetersDump           // Meter levels (cmd 0x10-0x17)
 )
 
 // ClassifySysEx determines the kind of an MCU SysEx payload.

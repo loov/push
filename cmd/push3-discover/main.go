@@ -132,7 +132,7 @@ func main() {
 	idx := 0
 	waitingForRelease := false
 	var captured []capturedItem // completed items
-	var currentEvents []event  // events for current captureAll item
+	var currentEvents []event   // events for current captureAll item
 
 	printPrompt := func() {
 		if idx < len(itemsToDiscover) {

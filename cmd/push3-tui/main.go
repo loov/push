@@ -72,15 +72,37 @@ func main() {
 
 // Messages.
 type (
-	buttonMsg         struct{ id push3.ButtonID; pressed bool }
-	padMsg            struct{ pos push3.PadPosition; velocity uint8; pressed bool }
-	padPressureMsg    struct{ pos push3.PadPosition; pressure uint8 }
-	padSlideMsg       struct{ pos push3.PadPosition; value uint8 }
-	padPitchBendMsg   struct{ pos push3.PadPosition; value uint16 }
-	encoderMsg        struct{ id push3.EncoderID; delta int }
-	encoderTouchMsg   struct{ id push3.EncoderID; touched bool }
-	touchStripMsg     struct{ value uint16 }
-	touchStripTouchMsg  struct{ touched bool }
+	buttonMsg struct {
+		id      push3.ButtonID
+		pressed bool
+	}
+	padMsg struct {
+		pos      push3.PadPosition
+		velocity uint8
+		pressed  bool
+	}
+	padPressureMsg struct {
+		pos      push3.PadPosition
+		pressure uint8
+	}
+	padSlideMsg struct {
+		pos   push3.PadPosition
+		value uint8
+	}
+	padPitchBendMsg struct {
+		pos   push3.PadPosition
+		value uint16
+	}
+	encoderMsg struct {
+		id    push3.EncoderID
+		delta int
+	}
+	encoderTouchMsg struct {
+		id      push3.EncoderID
+		touched bool
+	}
+	touchStripMsg      struct{ value uint16 }
+	touchStripTouchMsg struct{ touched bool }
 	dpadCenterTouchMsg struct{ touched bool }
 )
 
@@ -194,4 +216,3 @@ func (m model) View() tea.View {
 
 	return tea.NewView(m.renderLayout() + status + " q/ctrl+c to quit\n")
 }
-

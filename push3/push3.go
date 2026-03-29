@@ -41,9 +41,9 @@ const (
 	EncoderTrack6
 	EncoderTrack7
 	EncoderTrack8
-	EncoderVolume    // Large encoder on the left
+	EncoderVolume     // Large encoder on the left
 	EncoderSwingTempo // Swing/Tempo encoder: rotation=CC 14, click=CC 15
-	EncoderJog       // Jog wheel on the right
+	EncoderJog        // Jog wheel on the right
 )
 
 // EncoderCC returns the MIDI CC number for this encoder's rotation.
@@ -61,7 +61,6 @@ func (e EncoderID) EncoderCC() uint8 {
 		return 0
 	}
 }
-
 
 // EncoderFromCC returns the encoder for a given CC number.
 // Returns ok=false if the CC doesn't map to an encoder.
@@ -90,12 +89,12 @@ const (
 	TouchTrack6 uint8 = 5
 	TouchTrack7 uint8 = 6
 	TouchTrack8 uint8 = 7
-	TouchVolume     uint8 = 8
+	TouchVolume uint8 = 8
 	// Note 9 is unused.
 	TouchSwingTempo uint8 = 10 // Swing/Tempo encoder touch.
 	TouchJog        uint8 = 11
-	TouchTouchStrip  uint8 = 12
-	TouchDPadCenter  uint8 = 13
+	TouchTouchStrip uint8 = 12
+	TouchDPadCenter uint8 = 13
 )
 
 // Touch strip sends Pitch Bend (channel 0) for position (0-16383)
@@ -156,15 +155,15 @@ const (
 	ButtonSolo     ButtonID = 61
 
 	// Transport / left side
-	ButtonTapTempo   ButtonID = 3
-	ButtonMetronome  ButtonID = 9
-	ButtonQuantize   ButtonID = 116
-	ButtonFixedLen   ButtonID = 90
-	ButtonAutomate   ButtonID = 89
-	ButtonNew        ButtonID = 92
-	ButtonCapture    ButtonID = 65
-	ButtonRecord     ButtonID = 86
-	ButtonPlay       ButtonID = 85
+	ButtonTapTempo  ButtonID = 3
+	ButtonMetronome ButtonID = 9
+	ButtonQuantize  ButtonID = 116
+	ButtonFixedLen  ButtonID = 90
+	ButtonAutomate  ButtonID = 89
+	ButtonNew       ButtonID = 92
+	ButtonCapture   ButtonID = 65
+	ButtonRecord    ButtonID = 86
+	ButtonPlay      ButtonID = 85
 
 	// Right side
 	ButtonNote       ButtonID = 50
@@ -196,7 +195,7 @@ const (
 	ButtonSelect ButtonID = 48
 
 	// Encoder presses
-	ButtonVolumePress    ButtonID = 111 // Volume encoder click
+	ButtonVolumePress     ButtonID = 111 // Volume encoder click
 	ButtonSwingTempoPress ButtonID = 15  // Swing/Tempo encoder click (CC 15)
 
 	// Jog wheel actions (discovered via push3-discover)
@@ -238,33 +237,68 @@ const (
 	ButtonDiv1_32t ButtonID = 43
 )
 
+// Animation determines how an LED transitions to a new color.
+// The value maps directly to the MIDI channel used when setting the LED.
+// Animations synchronize to MIDI clock messages (0xF8).
+type Animation uint8
+
+const (
+	AnimStatic      Animation = 0  // Immediate color change, no animation
+	AnimOneShot24   Animation = 1  // One-shot fade, 1/24 note
+	AnimOneShot16   Animation = 2  // One-shot fade, 1/16 note
+	AnimOneShot8    Animation = 3  // One-shot fade, 1/8 note
+	AnimOneShot4    Animation = 4  // One-shot fade, 1/4 note
+	AnimOneShotHalf Animation = 5  // One-shot fade, 1/2 note
+	AnimPulse24     Animation = 6  // Continuous pulse, 1/24 note
+	AnimPulse16     Animation = 7  // Continuous pulse, 1/16 note
+	AnimPulse8      Animation = 8  // Continuous pulse, 1/8 note
+	AnimPulse4      Animation = 9  // Continuous pulse, 1/4 note
+	AnimPulseHalf   Animation = 10 // Continuous pulse, 1/2 note
+	AnimBlink24     Animation = 11 // Continuous blink, 1/24 note
+	AnimBlink16     Animation = 12 // Continuous blink, 1/16 note
+	AnimBlink8      Animation = 13 // Continuous blink, 1/8 note
+	AnimBlink4      Animation = 14 // Continuous blink, 1/4 note
+	AnimBlinkHalf   Animation = 15 // Continuous blink, 1/2 note
+)
+
+// TouchStripConfig holds touch strip configuration flags.
+type TouchStripConfig struct {
+	HostControl    bool // false=Push controls LEDs, true=host controls LEDs
+	HostSendsSysEx bool // false=host sends values, true=host sends sysex
+	ModWheel       bool // false=values as pitch bend, true=values as mod wheel
+	PointMode      bool // false=LEDs show bar, true=LEDs show point
+	BarFromCenter  bool // false=bar starts at bottom, true=bar starts at center
+	AutoReturn     bool // false=no autoreturn, true=autoreturn enabled
+	ReturnToCenter bool // false=return to bottom, true=return to center
+}
+
 // Well-known colors from the Push 3 default palette.
 var (
-	ColorBlack     = Color{0, 0, 0}
-	ColorWhite     = Color{255, 255, 255}
-	ColorRed       = Color{255, 0, 0}
-	ColorGreen     = Color{0, 255, 0}
-	ColorBlue      = Color{0, 0, 255}
-	ColorYellow    = Color{255, 255, 0}
-	ColorOrange    = Color{255, 153, 0}
-	ColorPurple    = Color{153, 0, 255}
-	ColorCyan      = Color{0, 255, 255}
-	ColorPink      = Color{255, 0, 255}
-	ColorLime      = Color{153, 255, 0}
-	ColorGray      = Color{128, 128, 128}
-	ColorDarkGray  = Color{30, 30, 30}
+	ColorBlack    = Color{0, 0, 0}
+	ColorWhite    = Color{255, 255, 255}
+	ColorRed      = Color{255, 0, 0}
+	ColorGreen    = Color{0, 255, 0}
+	ColorBlue     = Color{0, 0, 255}
+	ColorYellow   = Color{255, 255, 0}
+	ColorOrange   = Color{255, 153, 0}
+	ColorPurple   = Color{153, 0, 255}
+	ColorCyan     = Color{0, 255, 255}
+	ColorPink     = Color{255, 0, 255}
+	ColorLime     = Color{153, 255, 0}
+	ColorGray     = Color{128, 128, 128}
+	ColorDarkGray = Color{30, 30, 30}
 )
 
 // Default palette velocity indices.
 const (
-	PaletteBlack   uint8 = 0
-	PaletteOrange  uint8 = 3
-	PaletteYellow  uint8 = 8
+	PaletteBlack     uint8 = 0
+	PaletteOrange    uint8 = 3
+	PaletteYellow    uint8 = 8
 	PaletteTurquoise uint8 = 15
-	PalettePurple  uint8 = 22
-	PalettePink    uint8 = 25
-	PaletteWhite   uint8 = 122
-	PaletteBlue    uint8 = 125
-	PaletteGreen   uint8 = 126
-	PaletteRed     uint8 = 127
+	PalettePurple    uint8 = 22
+	PalettePink      uint8 = 25
+	PaletteWhite     uint8 = 122
+	PaletteBlue      uint8 = 125
+	PaletteGreen     uint8 = 126
+	PaletteRed       uint8 = 127
 )

@@ -24,20 +24,20 @@ type Push3 struct {
 	// Each pad press gets a unique MIDI channel; we track it so
 	// aftertouch and slide events can be routed to the correct pad.
 	activePads [16]push3.PadPosition // indexed by MIDI channel
-	padActive  [16]bool             // whether channel has an active pad
+	padActive  [16]bool              // whether channel has an active pad
 
 	// Event callbacks. Set these before calling Connect.
 	OnButton          func(id push3.ButtonID, pressed bool)
 	OnPad             func(pos push3.PadPosition, velocity uint8, pressed bool)
-	OnPadPressure     func(pos push3.PadPosition, pressure uint8)   // Aftertouch (channel pressure per MPE channel)
-	OnPadSlide        func(pos push3.PadPosition, value uint8)      // CC 74 — vertical finger position
-	OnPadPitchBend    func(pos push3.PadPosition, value uint16)     // MPE pitch bend (0-16383, center 8192)
+	OnPadPressure     func(pos push3.PadPosition, pressure uint8) // Aftertouch (channel pressure per MPE channel)
+	OnPadSlide        func(pos push3.PadPosition, value uint8)    // CC 74 — vertical finger position
+	OnPadPitchBend    func(pos push3.PadPosition, value uint16)   // MPE pitch bend (0-16383, center 8192)
 	OnEncoder         func(id push3.EncoderID, delta int)
 	OnEncoderTouch    func(id push3.EncoderID, touched bool)
-	OnTouchStrip       func(value uint16)                            // Position 0-16383
-	OnTouchStripTouch  func(touched bool)                            // Finger on/off
-	OnDPadCenterTouch  func(touched bool)                            // D-pad center touch
-	OnRawMIDI          func(data []byte)
+	OnTouchStrip      func(value uint16) // Position 0-16383
+	OnTouchStripTouch func(touched bool) // Finger on/off
+	OnDPadCenterTouch func(touched bool) // D-pad center touch
+	OnRawMIDI         func(data []byte)
 }
 
 // Push 3 MIDI port name patterns.
@@ -293,3 +293,17 @@ func (p *Push3) ClearPads() error {
 	return p.SetAllPadsColor(push3.PaletteBlack)
 }
 
+// SetAllButtonsColor sets all button LEDs to the same palette color.
+func (p *Push3) SetAllButtonsColor(paletteIndex uint8) error {
+	for _, cc := range allButtonCCs {
+		if err := p.SetButtonColor(push3.ButtonID(cc), paletteIndex); err != nil {
+			return fmt.Errorf("push: setting button CC %d: %w", cc, err)
+		}
+	}
+	return nil
+}
+
+// ClearButtons turns off all button LEDs.
+func (p *Push3) ClearButtons() error {
+	return p.SetAllButtonsColor(push3.PaletteBlack)
+}

@@ -11,12 +11,12 @@ import "github.com/loov/logic-push3/push3"
 type MessageKind uint8
 
 const (
-	MsgUnknown     MessageKind = iota
-	MsgButton                  // Note On/Off → button press/release
-	MsgFader                   // Pitch Bend → fader position
-	MsgVPot                    // CC 16-23 → encoder rotation
-	MsgSysEx                   // SysEx → LCD, handshake, meters, etc.
-	MsgChannelPressure         // Channel pressure → meter level
+	MsgUnknown         MessageKind = iota
+	MsgButton                      // Note On/Off → button press/release
+	MsgFader                       // Pitch Bend → fader position
+	MsgVPot                        // CC 16-23 → encoder rotation
+	MsgSysEx                       // SysEx → LCD, handshake, meters, etc.
+	MsgChannelPressure             // Channel pressure → meter level
 )
 
 // Message is a parsed MCU MIDI message.
