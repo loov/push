@@ -98,8 +98,12 @@ const (
 	// Note 9 is unused.
 	TouchTempo uint8 = 10 // Tempo and Swing share the same physical knob.
 	TouchJog        uint8 = 11
-	TouchDPadCenter uint8 = 13
+	TouchTouchStrip  uint8 = 12
+	TouchDPadCenter  uint8 = 13
 )
+
+// Touch strip sends Pitch Bend (channel 0) for position (0-16383)
+// and Note 12 on/off for touch/release.
 
 // EncoderTouchNote returns the MIDI note for this encoder's touch sensor.
 func (e EncoderID) EncoderTouchNote() uint8 {

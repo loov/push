@@ -18,11 +18,13 @@ type Push3 struct {
 	output *midi.OutputPort
 
 	// Event callbacks. Set these before calling Connect.
-	OnButton       func(id push3.ButtonID, pressed bool)
-	OnPad          func(pos push3.PadPosition, velocity uint8, pressed bool)
-	OnEncoder      func(id push3.EncoderID, delta int)
-	OnEncoderTouch func(id push3.EncoderID, touched bool)
-	OnRawMIDI      func(data []byte)
+	OnButton         func(id push3.ButtonID, pressed bool)
+	OnPad            func(pos push3.PadPosition, velocity uint8, pressed bool)
+	OnEncoder        func(id push3.EncoderID, delta int)
+	OnEncoderTouch   func(id push3.EncoderID, touched bool)
+	OnTouchStrip     func(value uint16)          // Position 0-16383
+	OnTouchStripTouch func(touched bool)          // Finger on/off
+	OnRawMIDI        func(data []byte)
 }
 
 // Push 3 MIDI port name patterns.
@@ -84,7 +86,15 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 
-		// Check if it's an encoder touch note (0-10).
+		// Touch strip touch.
+		if note == push3.TouchTouchStrip {
+			if p.OnTouchStripTouch != nil {
+				p.OnTouchStripTouch(pressed)
+			}
+			return
+		}
+
+		// Check if it's an encoder touch note.
 		if enc, ok := encoderFromTouchNote(note); ok {
 			if p.OnEncoderTouch != nil {
 				p.OnEncoderTouch(enc, pressed)
@@ -106,6 +116,14 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 
+		// Touch strip release.
+		if note == push3.TouchTouchStrip {
+			if p.OnTouchStripTouch != nil {
+				p.OnTouchStripTouch(false)
+			}
+			return
+		}
+
 		// Encoder touch release.
 		if enc, ok := encoderFromTouchNote(note); ok {
 			if p.OnEncoderTouch != nil {
@@ -113,6 +131,16 @@ func (p *Push3) handleMIDI(data []byte) {
 			}
 			return
 		}
+
+	case 0xE0: // Pitch Bend — touch strip position
+		if len(data) < 3 {
+			return
+		}
+		value := uint16(data[1]) | uint16(data[2])<<7
+		if p.OnTouchStrip != nil {
+			p.OnTouchStrip(value)
+		}
+		return
 
 	case 0xB0: // Control Change
 		if len(data) < 3 {

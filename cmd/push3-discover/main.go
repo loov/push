@@ -26,12 +26,9 @@ type item struct {
 }
 
 var itemsToDiscover = []item{
-	// Jog wheel — each action separately
-	{"Jog wheel: ROTATE clockwise only", true},
-	{"Jog wheel: CLICK (press down)", true},
-	{"Jog wheel: PUSH LEFT", true},
-	{"Jog wheel: PUSH RIGHT", true},
-	{"Jog wheel: TOUCH (just touch, don't press)", true},
+	// Touch strip
+	{"Touch strip: TOUCH (place finger, don't move)", true},
+	{"Touch strip: SLIDE (drag finger up and down)", true},
 
 	// Buttons (auto-advance)
 	{"Sets", false}, {"Setup", false}, {"Learn", false}, {"User", false},
