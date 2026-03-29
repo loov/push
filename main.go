@@ -15,8 +15,8 @@ import (
 )
 
 func main() {
-	mcuIn := flag.String("mcu-in", "LogicMCU_In", "IAC Driver port name for MCU input (Logic→app)")
-	mcuOut := flag.String("mcu-out", "LogicMCU_Out", "IAC Driver port name for MCU output (app→Logic)")
+	mcuIn := flag.String("mcu-in", "Logic Pro Virtual In", "MIDI destination name (app→Logic)")
+	mcuOut := flag.String("mcu-out", "Logic Pro Virtual Out", "MIDI source name (Logic→app)")
 	debug := flag.Bool("debug", false, "print all incoming MIDI messages")
 	flag.Parse()
 
