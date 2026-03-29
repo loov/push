@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIDI Controller Layout</title>
+
+<style>
+  :root {
+    --bg-color: #222;
+    --hover-color: #444;
+    --line-color: #fff;
+    --border-width: 2px;
+    --gap-sm: 4px;
+    --gap-md: 10px;
+    --gap-lg: 20px;
+
+    --x0: 20px;
+    --x1: 30px;
+    --x1h: 40px;
+    --x2: 60px;
+  }
+
+  body {
+    background-color: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+  }
+
+  .device {
+    background-color: var(--bg-color);
+    padding: 30px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  }
+
+  .device-grid {
+    display: grid;
+    gap: var(--gap-sm);
+
+    grid-template-columns:
+       repeat(4, [left] var(--x1)) [left]
+       var(--x0)
+       repeat(8, [pad] var(--x2)) [pad]
+       var(--x1)
+       repeat(4, [right] var(--x1)) [right]
+    ;
+    grid-template-rows:
+       [encoder]  var(--x2)
+       [top]      var(--x1)
+       var(--x0)
+       repeat(3, [display] var(--x1)) [display]
+       var(--x0)
+       [bottom] var(--x1) [bottom]
+       var(--x0)
+       repeat(8, [pad] var(--x2)) [pad]
+    ;
+  }
+
+  .button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      border: 1px solid var(--line-color);
+      border-radius: 2px;
+      cursor: pointer;
+  }
+  .button.text {
+      font-size: 9px;
+  }
+  .button:hover {
+      background-color: var(--hover-color);
+  }
+
+  .encoder {
+    width: var(--x1);
+    height: var(--x1);
+    border-radius: 50%;
+    border: 2px solid var(--line-color);
+    background-color: var(--bg-color);
+    place-self: center;
+  }
+
+  .encoder::after {
+    content: '';
+    display: block;
+    width: 2px;
+    height: 40%;
+    background: var(--line-color);
+    margin: 2px auto 0;
+  }
+
+  .top-button, .bottom-button {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    border: 2px solid var(--line-color);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  .top-button:hover, .bottom-button:hover {
+      background-color: var(--hover-color);
+  }
+  .top-button::before, .bottom-button::before {
+    content: '';
+    width: 70%;
+    height: 4px;
+    background: var(--line-color);
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+  .bottom-button::before {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+
+  .pad {
+    width: 100%;
+    height: 100%;
+    background-color: #333;
+    border: 2px solid var(--line-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  .pad:hover {
+    background-color: var(--hover-color);
+  }
+
+  .touch-strip {
+    width: 75%;
+    justify-self: end;
+    height: 100%;
+    background-color: #1a1a1a;
+    border: 2px solid var(--line-color);
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+
+  .display {
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a1a;
+    border: 2px solid var(--line-color);
+    border-radius: 3px;
+  }
+
+  .wheel {
+    width: var(--x2);
+    height: var(--x2);
+    border: 2px solid var(--line-color);
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    place-self: center;
+    box-sizing: border-box;
+  }
+  .wheel-small {
+    width: var(--x1h);
+    height: var(--x1h);
+    border: 2px solid var(--line-color);
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    place-self: center;
+    box-sizing: border-box;
+  }
+
+  .vertical-split {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .vertical-split > * {
+    flex: 1;
+  }
+
+  .height-x1 {
+    height: var(--x1);
+  }
+
+  .dpad {
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--line-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    place-items: center;
+    color: #fff;
+    font-size: 12px;
+    padding: 4px;
+  }
+  .dpad .center {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line-color);
+  }
+  .dpad span {
+    cursor: pointer;
+  }
+  .dpad span:hover {
+    color: #aaa;
+  }
+
+  .nav-pad {
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--line-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template: ".    up     ."
+                   "left center right"
+                   ".    down   ."
+                   / 1fr 1fr 1fr;
+    place-items: center;
+    color: #fff;
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+  .nav-pad .up         { grid-area: up; }
+  .nav-pad .down       { grid-area: down; }
+  .nav-pad .left       { grid-area: left; }
+  .nav-pad .right      { grid-area: right; }
+  .nav-pad .center     { grid-area: center; width: 6px; height: 6px; border-radius: 50%; background: var(--line-color); }
+  .nav-pad .label-top,
+  .nav-pad .label-bot  { font-size: 7px; opacity: 0.7; }
+  .nav-pad .up, .nav-pad .down,
+  .nav-pad .left, .nav-pad .right {
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .nav-pad .up:hover, .nav-pad .down:hover,
+  .nav-pad .left:hover, .nav-pad .right:hover {
+    color: #aaa;
+  }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div id="grid" class="device-grid">
+      <div style="grid-area: top / left 1" class="button" aria-label="Sets">❏</div>
+      <div style="grid-area: top / left 2" class="button" aria-label="Setup">⚙</div>
+      <div style="grid-area: top / left 3" class="button" aria-label="Learn">💡</div>
+      <div style="grid-area: top / left 4" class="button" aria-label="User">👤</div>
+
+      <div style="grid-area: top / right 1" class="button" aria-label="Device">🎧</div>
+      <div style="grid-area: top / right 2" class="button" aria-label="Mix">📊</div>
+      <div style="grid-area: top / right 3" class="button" aria-label="Clip">▶</div>
+      <div style="grid-area: top / right 4" class="button" aria-label="Session">|||</div>
+
+      <div style="grid-area: display 1 / left 4" class="button text" aria-label="Undo">undo</div>
+      <div style="grid-area: display 3 / left 4" class="button text" aria-label="Save">save</div>
+
+      <div style="grid-area: bottom / left 1" class="button" aria-label="Lock">🔒</div>
+      <div style="grid-area: bottom / left 2" class="button" aria-label="Stop Clip">■</div>
+      <div style="grid-area: bottom / left 3" class="button" aria-label="Mute">M</div>
+      <div style="grid-area: bottom / left 4" class="button" aria-label="Solo">S</div>
+
+      <div style="grid-area: encoder / pad 1" class="encoder" aria-label="Encoder 1"></div>
+      <div style="grid-area: encoder / pad 2" class="encoder" aria-label="Encoder 2"></div>
+      <div style="grid-area: encoder / pad 3" class="encoder" aria-label="Encoder 3"></div>
+      <div style="grid-area: encoder / pad 4" class="encoder" aria-label="Encoder 4"></div>
+      <div style="grid-area: encoder / pad 5" class="encoder" aria-label="Encoder 5"></div>
+      <div style="grid-area: encoder / pad 6" class="encoder" aria-label="Encoder 6"></div>
+      <div style="grid-area: encoder / pad 7" class="encoder" aria-label="Encoder 7"></div>
+      <div style="grid-area: encoder / pad 8" class="encoder" aria-label="Encoder 8"></div>
+
+      <div style="grid-area: top / pad 1" class="top-button" aria-label="Top 1"></div>
+      <div style="grid-area: top / pad 2" class="top-button" aria-label="Top 2"></div>
+      <div style="grid-area: top / pad 3" class="top-button" aria-label="Top 3"></div>
+      <div style="grid-area: top / pad 4" class="top-button" aria-label="Top 4"></div>
+      <div style="grid-area: top / pad 5" class="top-button" aria-label="Top 5"></div>
+      <div style="grid-area: top / pad 6" class="top-button" aria-label="Top 6"></div>
+      <div style="grid-area: top / pad 7" class="top-button" aria-label="Top 7"></div>
+      <div style="grid-area: top / pad 8" class="top-button" aria-label="Top 8"></div>
+
+      <div style="grid-area: display 1 / pad 1 / display 4 / pad 9" class="display" aria-label="Display"></div>
+
+      <div style="grid-area: bottom / pad 1" class="bottom-button" aria-label="Bottom 1"></div>
+      <div style="grid-area: bottom / pad 2" class="bottom-button" aria-label="Bottom 2"></div>
+      <div style="grid-area: bottom / pad 3" class="bottom-button" aria-label="Bottom 3"></div>
+      <div style="grid-area: bottom / pad 4" class="bottom-button" aria-label="Bottom 4"></div>
+      <div style="grid-area: bottom / pad 5" class="bottom-button" aria-label="Bottom 5"></div>
+      <div style="grid-area: bottom / pad 6" class="bottom-button" aria-label="Bottom 6"></div>
+      <div style="grid-area: bottom / pad 7" class="bottom-button" aria-label="Bottom 7"></div>
+      <div style="grid-area: bottom / pad 8" class="bottom-button" aria-label="Bottom 8"></div>
+
+      <div style="grid-area: bottom / right 1" class="bottom-button" aria-label="Master Track"></div>
+
+      <div style="grid-area: display 1 / right 1" class="button" aria-label="Add">+</div>
+      <div style="grid-area: display 3 / right 1" class="button" aria-label="Swap">⟲</div>
+
+      <div style="grid-area: pad 1 / left 3 / pad 9 / left 5" class="touch-strip" aria-label="Touch Strip"></div>
+
+      <div style="grid-area: pad 1 / right 1" class="button text" aria-label="Repeat 1/32t">1/32t</div>
+      <div style="grid-area: pad 2 / right 1" class="button text" aria-label="Repeat 1/32">1/32</div>
+      <div style="grid-area: pad 3 / right 1" class="button text" aria-label="Repeat 1/16t">1/16t</div>
+      <div style="grid-area: pad 4 / right 1" class="button text" aria-label="Repeat 1/16">1/16</div>
+      <div style="grid-area: pad 5 / right 1" class="button text" aria-label="Repeat 1/8t">1/8t</div>
+      <div style="grid-area: pad 6 / right 1" class="button text" aria-label="Repeat 1/8">1/8</div>
+      <div style="grid-area: pad 7 / right 1" class="button text" aria-label="Repeat 1/4t">1/4t</div>
+      <div style="grid-area: pad 8 / right 1" class="button text" aria-label="Repeat 1/4">1/4</div>
+
+      <div style="grid-area: display 1 / left 1 / display 4 / left 3" class="wheel" aria-label="Volume"></div>
+      <div style="grid-area: display 1 / right 2 / display 4 / right 5" class="wheel" aria-label="Jog Wheel"></div>
+      <div style="grid-area: pad 1 / left 1 / pad 2 / left 3" class="wheel-small" aria-label="Swing & Tempo"></div>
+
+      <div style="grid-area: pad 2 / left 1 / pad 3 / left 3" class="button text" aria-label="Tap / Tempo">Tap / Temo</div>
+      <div style="grid-area: pad 3 / left 1 / pad 4 / left 3" class="vertical-split">
+          <div class="button text" aria-label="Metronome">Metronome</div>
+          <div class="button text" aria-label="Quantize">Quantize</div>
+      </div>
+
+      <div style="grid-area: pad 4 / left 1 / pad 6 / left 3" class="vertical-split">
+          <div></div>
+          <div class="button text" aria-label="Fixed Length">Fixed Length</div>
+          <div class="button text" aria-label="Automate">Automate</div>
+          <div></div>
+      </div>
+
+      <div style="grid-area: pad 6 / left 1 / pad 7 / left 3" class="vertical-split">
+          <div class="button text" aria-label="New">New</div>
+          <div class="button text" aria-label="Capture">[ ]</div>
+      </div>
+
+      <div style="grid-area: pad 7 / left 1 / pad 8 / left 3" class="button" aria-label="Record">⏺️</div>
+      <div style="grid-area: pad 8 / left 1 / pad 9 / left 3" class="button" aria-label="Play">▶️</div>
+
+      <div style="grid-area: bottom 1 / right 2 / pad 2 / right 5" class="dpad" aria-label="D-Pad">
+        <span></span><span aria-label="Up">∧</span><span></span>
+        <span aria-label="Left">‹</span><span class="center"></span><span aria-label="Right">›</span>
+        <span></span><span aria-label="Down">∨</span><span></span>
+      </div>
+
+      <div style="grid-area: pad 7 / right 3 / pad 8 / right 5" class="nav-pad" aria-label="Navigation">
+        <span class="up" aria-label="Octave Up">∧</span>
+        <span class="left" aria-label="Page Left">&lt;</span>
+        <span></span>
+        <span class="right" aria-label="Page Right">&gt;</span>
+        <span class="down" aria-label="Octave Down">∨</span>
+      </div>
+
+      <div style="grid-area: pad 2 / right 3 / pad 3 / right 4" class="button" aria-label="Note">🎵</div>
+      <div style="grid-area: pad 2 / right 4 / pad 3 / right 5" class="button" aria-label="Session">|||</div>
+      <div style="grid-area: pad 3 / right 3 / pad 4 / right 4" class="button text height-x1" aria-label="Scale">Scale</div>
+      <div style="grid-area: pad 3 / right 4 / pad 4 / right 5" class="button text height-x1" aria-label="Layout">Layout</div>
+
+      <div style="grid-area: pad 4 / right 3 / pad 5 / right 4" class="button text" aria-label="Repeat">Repeat</div>
+      <div style="grid-area: pad 4 / right 4 / pad 5 / right 5" class="button text" aria-label="Accent">Accent</div>
+
+      <div style="grid-area: pad 5 / right 3 / pad 6 / right 4" class="button text" aria-label="Double Loop">Double Loop</div>
+      <div style="grid-area: pad 5 / right 4 / pad 6 / right 5" class="button text" aria-label="Duplicate">Duplicate</div>
+      <div style="grid-area: pad 6 / right 3 / pad 7 / right 4" class="button text" aria-label="Convert">Convert</div>
+      <div style="grid-area: pad 6 / right 4 / pad 7 / right 5" class="button text" aria-label="Delete">Delete</div>
+
+      <div style="grid-area: pad 8 / right 3 / pad 9 / right 4" class="button text" aria-label="Shift">Shift</div>
+      <div style="grid-area: pad 8 / right 4 / pad 9 / right 5" class="button text" aria-label="Select">Select</div>
+  </div>
+</div>
+
+<script>
+  const grid = document.getElementById('grid');
+  for (let row = 1; row <= 8; row++) {
+    for (let col = 1; col <= 8; col++) {
+      const pad = document.createElement('div');
+      pad.className = 'pad';
+      pad.style.gridArea = `pad ${row} / pad ${col}`;
+      pad.ariaLabel = `Pad ${row}-${col}`;
+      grid.appendChild(pad);
+    }
+  }
+</script>
+
+</body>
+</html>
