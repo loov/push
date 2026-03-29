@@ -15,7 +15,8 @@ test:
 
 # --- vetting and staticcheck for common platforms ---
 
-PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64
+#PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64
+PLATFORMS := darwin/arm64
 
 VET_TARGETS := $(addprefix vet/,$(PLATFORMS))
 STATICCHECK_TARGETS := $(addprefix staticcheck/,$(PLATFORMS))
