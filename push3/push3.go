@@ -97,7 +97,8 @@ const (
 	TouchVolume uint8 = 8
 	// Note 9 is unused.
 	TouchTempo uint8 = 10 // Tempo and Swing share the same physical knob.
-	TouchJog   uint8 = 11
+	TouchJog        uint8 = 11
+	TouchDPadCenter uint8 = 13
 )
 
 // EncoderTouchNote returns the MIDI note for this encoder's touch sensor.
@@ -177,11 +178,12 @@ const (
 	ButtonConvert    ButtonID = 35
 	ButtonDelete     ButtonID = 118
 
-	// D-pad
-	ButtonUp    ButtonID = 46
-	ButtonDown  ButtonID = 47
-	ButtonLeft  ButtonID = 44
-	ButtonRight ButtonID = 45
+	// D-pad (directional CCs + center click CC 91, center touch Note 13)
+	ButtonUp         ButtonID = 46
+	ButtonDown       ButtonID = 47
+	ButtonLeft       ButtonID = 44
+	ButtonRight      ButtonID = 45
+	ButtonDPadCenter ButtonID = 91
 
 	// Navigation (Octave/Page)
 	ButtonOctaveUp   ButtonID = 55

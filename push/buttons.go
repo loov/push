@@ -70,6 +70,7 @@ var allButtonCCs = []uint8{
 	byte(push3.ButtonDown),
 	byte(push3.ButtonLeft),
 	byte(push3.ButtonRight),
+	byte(push3.ButtonDPadCenter),
 
 	// Navigation
 	byte(push3.ButtonOctaveUp),
