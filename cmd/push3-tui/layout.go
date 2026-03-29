@@ -280,6 +280,11 @@ func (m model) renderLayout() string {
 		addHighlight(18, 4, 10, encTouchedStyle)
 	}
 
+	// D-pad center touch highlight (C at row 15, col 96).
+	if m.dpadCenterTouched {
+		addHighlight(15, 96, 1, encTouchedStyle)
+	}
+
 	// Button highlights — cover all rows of the button box.
 	for _, r := range buttonRegions {
 		if r.id != 0 && m.buttons[r.id] {

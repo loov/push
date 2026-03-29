@@ -60,6 +60,9 @@ func main() {
 	p.OnTouchStripTouch = func(touched bool) {
 		prog.Send(touchStripTouchMsg{touched: touched})
 	}
+	p.OnDPadCenterTouch = func(touched bool) {
+		prog.Send(dpadCenterTouchMsg{touched: touched})
+	}
 
 	if _, err := prog.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -77,7 +80,8 @@ type (
 	encoderMsg        struct{ id push3.EncoderID; delta int }
 	encoderTouchMsg   struct{ id push3.EncoderID; touched bool }
 	touchStripMsg     struct{ value uint16 }
-	touchStripTouchMsg struct{ touched bool }
+	touchStripTouchMsg  struct{ touched bool }
+	dpadCenterTouchMsg struct{ touched bool }
 )
 
 // Model.
@@ -91,6 +95,9 @@ type model struct {
 	// Touch strip
 	touchStripValue   uint16
 	touchStripTouched bool
+
+	// D-pad center touch
+	dpadCenterTouched bool
 
 	// Last event info for status display
 	lastEvent string
@@ -156,6 +163,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.lastEvent = "Touch strip touched"
 		} else {
 			m.lastEvent = "Touch strip released"
+		}
+	case dpadCenterTouchMsg:
+		m.dpadCenterTouched = msg.touched
+		if msg.touched {
+			m.lastEvent = "D-pad center touched"
+		} else {
+			m.lastEvent = "D-pad center released"
 		}
 	}
 	return m, nil

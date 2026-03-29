@@ -34,9 +34,10 @@ type Push3 struct {
 	OnPadPitchBend    func(pos push3.PadPosition, value uint16)     // MPE pitch bend (0-16383, center 8192)
 	OnEncoder         func(id push3.EncoderID, delta int)
 	OnEncoderTouch    func(id push3.EncoderID, touched bool)
-	OnTouchStrip      func(value uint16)                            // Position 0-16383
-	OnTouchStripTouch func(touched bool)                            // Finger on/off
-	OnRawMIDI         func(data []byte)
+	OnTouchStrip       func(value uint16)                            // Position 0-16383
+	OnTouchStripTouch  func(touched bool)                            // Finger on/off
+	OnDPadCenterTouch  func(touched bool)                            // D-pad center touch
+	OnRawMIDI          func(data []byte)
 }
 
 // Push 3 MIDI port name patterns.
@@ -112,6 +113,14 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 
+		// D-pad center touch (Note 13).
+		if note == push3.TouchDPadCenter {
+			if p.OnDPadCenterTouch != nil {
+				p.OnDPadCenterTouch(pressed)
+			}
+			return
+		}
+
 		// Check if it's an encoder touch note.
 		if enc, ok := encoderFromTouchNote(note); ok {
 			if p.OnEncoderTouch != nil {
@@ -139,6 +148,14 @@ func (p *Push3) handleMIDI(data []byte) {
 		if note == push3.TouchTouchStrip {
 			if p.OnTouchStripTouch != nil {
 				p.OnTouchStripTouch(false)
+			}
+			return
+		}
+
+		// D-pad center touch release.
+		if note == push3.TouchDPadCenter {
+			if p.OnDPadCenterTouch != nil {
+				p.OnDPadCenterTouch(false)
 			}
 			return
 		}
