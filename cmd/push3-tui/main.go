@@ -86,8 +86,8 @@ type model struct {
 	push     *push.Push3
 	buttons  map[push3.ButtonID]bool
 	pads     [8][8]uint8 // velocity (0 = not pressed)
-	encoders [11]int     // accumulated value per encoder
-	touched  [11]bool    // encoder touch state
+	encoders [12]int     // accumulated value per encoder (index 0 unused, 1-11)
+	touched  [12]bool    // encoder touch state
 }
 
 func newModel(p *push.Push3) model {
@@ -110,12 +110,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case padMsg:
 		m.pads[msg.pos.Row][msg.pos.Col] = msg.velocity
 	case encoderMsg:
-		idx := int(msg.id) - 1
+		idx := int(msg.id)
 		if idx >= 0 && idx < len(m.encoders) {
 			m.encoders[idx] += msg.delta
 		}
 	case encoderTouchMsg:
-		idx := int(msg.id) - 1
+		idx := int(msg.id)
 		if idx >= 0 && idx < len(m.touched) {
 			m.touched[idx] = msg.touched
 		}
@@ -123,54 +123,98 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// Layout constants.
+const (
+	padW = 6 // characters wide per pad cell
+	padH = 2 // lines tall per pad cell
+	encW = 8 // characters wide per encoder column
+)
+
 func (m model) View() tea.View {
 	var b strings.Builder
 
-	b.WriteString(titleStyle.Render("  ABLETON PUSH 3  "))
+	// ── Encoders row ──
+	b.WriteString("  ")
+	for i := range 8 {
+		enc := push3.EncoderID(i + 1) // EncoderTrack1..8
+		style := encStyle
+		if m.touched[enc] {
+			style = encTouchedStyle
+		}
+		b.WriteString(style.Render(fmt.Sprintf("  (%d) ", m.encoders[enc])))
+		b.WriteString(" ")
+	}
+	b.WriteString("\n")
+
+	// ── Upper display buttons ──
+	b.WriteString("  ")
+	upBtns := [8]push3.ButtonID{
+		push3.ButtonUpper1, push3.ButtonUpper2, push3.ButtonUpper3, push3.ButtonUpper4,
+		push3.ButtonUpper5, push3.ButtonUpper6, push3.ButtonUpper7, push3.ButtonUpper8,
+	}
+	for i, id := range upBtns {
+		label := fmt.Sprintf(" Up%d ", i+1)
+		b.WriteString(m.btn(id, label))
+		b.WriteString(" ")
+	}
+	b.WriteString("\n")
+
+	// ── Display area (placeholder) ──
+	dispStyle := lipgloss.NewStyle().
+		Width(8*encW - 1).
+		Height(3).
+		Background(lipgloss.Color("#0a0a0a")).
+		Foreground(lipgloss.Color("#333333")).
+		Align(lipgloss.Center, lipgloss.Center)
+	b.WriteString("  ")
+	b.WriteString(dispStyle.Render("[ display ]"))
+	b.WriteString("\n")
+
+	// ── Lower display buttons ──
+	b.WriteString("  ")
+	loBtns := [8]push3.ButtonID{
+		push3.ButtonLower1, push3.ButtonLower2, push3.ButtonLower3, push3.ButtonLower4,
+		push3.ButtonLower5, push3.ButtonLower6, push3.ButtonLower7, push3.ButtonLower8,
+	}
+	for i, id := range loBtns {
+		label := fmt.Sprintf(" Lo%d ", i+1)
+		b.WriteString(m.btn(id, label))
+		b.WriteString(" ")
+	}
 	b.WriteString("\n\n")
 
-	// Upper display buttons
-	b.WriteString(m.renderButtonRow(
-		[]namedButton{
-			{"Up1", push3.ButtonUpper1}, {"Up2", push3.ButtonUpper2},
-			{"Up3", push3.ButtonUpper3}, {"Up4", push3.ButtonUpper4},
-			{"Up5", push3.ButtonUpper5}, {"Up6", push3.ButtonUpper6},
-			{"Up7", push3.ButtonUpper7}, {"Up8", push3.ButtonUpper8},
-		},
-	))
+	// ── Left buttons │ Pad grid │ Scene/repeat buttons ──
+	leftCol := m.renderLeftButtons()
+	padGrid := m.renderPadGrid()
+	rightCol := m.renderRightButtons()
 
-	// Encoders
-	b.WriteString(m.renderEncoders())
+	// Join left, pads, right side by side.
+	leftLines := strings.Split(leftCol, "\n")
+	padLines := strings.Split(padGrid, "\n")
+	rightLines := strings.Split(rightCol, "\n")
 
-	// Lower display buttons
-	b.WriteString(m.renderButtonRow(
-		[]namedButton{
-			{"Lo1", push3.ButtonLower1}, {"Lo2", push3.ButtonLower2},
-			{"Lo3", push3.ButtonLower3}, {"Lo4", push3.ButtonLower4},
-			{"Lo5", push3.ButtonLower5}, {"Lo6", push3.ButtonLower6},
-			{"Lo7", push3.ButtonLower7}, {"Lo8", push3.ButtonLower8},
-		},
-	))
-
-	b.WriteString("\n")
-
-	// Navigation + transport + mode buttons
-	b.WriteString(m.renderControlButtons())
-	b.WriteString("\n")
-
-	// 8x8 pad grid
-	b.WriteString(m.renderPadGrid())
-	b.WriteString("\n")
-
-	// Time division buttons
-	b.WriteString(m.renderButtonRow(
-		[]namedButton{
-			{"1/4", push3.ButtonDiv1_4}, {"1/4t", push3.ButtonDiv1_4t},
-			{"1/8", push3.ButtonDiv1_8}, {"1/8t", push3.ButtonDiv1_8t},
-			{"1/16", push3.ButtonDiv1_16}, {"1/16t", push3.ButtonDiv1_16t},
-			{"1/32", push3.ButtonDiv1_32}, {"1/32t", push3.ButtonDiv1_32t},
-		},
-	))
+	maxLines := max(len(leftLines), len(padLines), len(rightLines))
+	for i := range maxLines {
+		left := ""
+		if i < len(leftLines) {
+			left = leftLines[i]
+		}
+		pad := ""
+		if i < len(padLines) {
+			pad = padLines[i]
+		}
+		right := ""
+		if i < len(rightLines) {
+			right = rightLines[i]
+		}
+		// Pad left column to fixed width.
+		left = fixWidth(left, 12)
+		b.WriteString(left)
+		b.WriteString(pad)
+		b.WriteString("  ")
+		b.WriteString(right)
+		b.WriteString("\n")
+	}
 
 	b.WriteString("\n")
 	b.WriteString(dimStyle.Render("  q/ctrl+c to quit"))
@@ -179,126 +223,93 @@ func (m model) View() tea.View {
 	return tea.NewView(b.String())
 }
 
-// --- Rendering helpers ---
+// --- Button rendering ---
 
-type namedButton struct {
-	label string
-	id    push3.ButtonID
-}
-
-func (m model) renderButtonRow(buttons []namedButton) string {
-	var parts []string
-	for _, btn := range buttons {
-		style := btnOffStyle
-		if m.buttons[btn.id] {
-			style = btnOnStyle
+func (m model) btn(id push3.ButtonID, label string) string {
+	if m.buttons[id] {
+		switch id {
+		case push3.ButtonPlay:
+			return btnGreenStyle.Render(label)
+		case push3.ButtonRecord:
+			return btnRedStyle.Render(label)
+		case push3.ButtonMute:
+			return btnCyanStyle.Render(label)
+		case push3.ButtonSolo:
+			return btnYellowStyle.Render(label)
+		default:
+			return btnOnStyle.Render(label)
 		}
-		parts = append(parts, style.Render(centerPad(btn.label, 5)))
 	}
-	return " " + strings.Join(parts, " ") + "\n"
+	return btnOffStyle.Render(label)
 }
 
-func (m model) renderEncoders() string {
-	labels := []string{"Trk1", "Trk2", "Trk3", "Trk4", "Trk5", "Trk6", "Trk7", "Trk8"}
-	var parts []string
-	for i, label := range labels {
-		val := m.encoders[i]
-		style := encOffStyle
-		if m.touched[i] {
-			style = encOnStyle
-		}
-		text := fmt.Sprintf("%s\n%4d", label, val)
-		parts = append(parts, style.Render(text))
-	}
-	return " " + strings.Join(parts, " ") + "\n"
-}
+// --- Left side buttons (transport, etc.) ---
 
-func (m model) renderControlButtons() string {
+func (m model) renderLeftButtons() string {
 	var b strings.Builder
-
-	// Row 1: Navigation
-	nav := []namedButton{
-		{"  ▲ ", push3.ButtonUp},
+	// Vertical stack mirroring left side of Push 3.
+	btns := []struct {
+		label string
+		id    push3.ButtonID
+	}{
+		{"Mute  ", push3.ButtonMute},
+		{"Solo  ", push3.ButtonSolo},
+		{"      ", 0}, // spacer
+		{"Stop  ", push3.ButtonStop},
+		{" ▶ Ply", push3.ButtonPlay},
+		{" ● Rec", push3.ButtonRecord},
+		{"      ", 0}, // spacer
+		{"Undo  ", push3.ButtonUndo},
 	}
-	b.WriteString(" ")
-	b.WriteString(m.renderInlineButtons(nav))
-
-	// Mode buttons on same line
-	mode := []namedButton{
-		{"Note", push3.ButtonNote}, {"Sess", push3.ButtonSession},
-		{"Mix", push3.ButtonMix}, {"Brws", push3.ButtonBrowse},
-		{"Dev", push3.ButtonDevice}, {"Clip", push3.ButtonClip},
+	for _, entry := range btns {
+		if entry.id == 0 {
+			b.WriteString("          \n")
+			continue
+		}
+		b.WriteString(m.btn(entry.id, entry.label))
+		b.WriteString("\n")
 	}
-	b.WriteString("  ")
-	b.WriteString(m.renderInlineButtons(mode))
-	b.WriteString("\n")
-
-	// Row 2: Left/Down/Right + Mute/Solo
-	nav2 := []namedButton{
-		{"  ◄ ", push3.ButtonLeft}, {"  ▼ ", push3.ButtonDown}, {"  ► ", push3.ButtonRight},
-	}
-	b.WriteString(" ")
-	b.WriteString(m.renderInlineButtons(nav2))
-
-	misc := []namedButton{
-		{"Mute", push3.ButtonMute}, {"Solo", push3.ButtonSolo},
-		{"Shft", push3.ButtonShift}, {"Sel", push3.ButtonSelect},
-	}
-	b.WriteString("  ")
-	b.WriteString(m.renderInlineButtons(misc))
-	b.WriteString("\n")
-
-	// Row 3: Transport
-	transport := []namedButton{
-		{"Stop", push3.ButtonStop},
-		{" ▶ ", push3.ButtonPlay},
-		{" ● ", push3.ButtonRecord},
-		{"Undo", push3.ButtonUndo},
-		{"Del", push3.ButtonDelete},
-		{"Qntz", push3.ButtonQuantize},
-		{"Dup", push3.ButtonDuplicate},
-	}
-	b.WriteString(" ")
-	b.WriteString(m.renderInlineButtons(transport))
-	b.WriteString("\n")
-
 	return b.String()
 }
 
-func (m model) renderInlineButtons(buttons []namedButton) string {
-	var parts []string
-	for _, btn := range buttons {
-		style := btnOffStyle
-		if m.buttons[btn.id] {
-			switch btn.id {
-			case push3.ButtonPlay:
-				style = btnGreenStyle
-			case push3.ButtonRecord:
-				style = btnRedStyle
-			case push3.ButtonMute:
-				style = btnCyanStyle
-			case push3.ButtonSolo:
-				style = btnYellowStyle
-			default:
-				style = btnOnStyle
-			}
-		}
-		parts = append(parts, style.Render(centerPad(btn.label, 4)))
+// --- Right side buttons (scene/repeat, nav) ---
+
+func (m model) renderRightButtons() string {
+	var b strings.Builder
+	// Time division / scene buttons stacked vertically on the right.
+	sceneBtns := []struct {
+		label string
+		id    push3.ButtonID
+	}{
+		{" 1/32t", push3.ButtonDiv1_32t},
+		{" 1/32 ", push3.ButtonDiv1_32},
+		{" 1/16t", push3.ButtonDiv1_16t},
+		{" 1/16 ", push3.ButtonDiv1_16},
+		{" 1/8t ", push3.ButtonDiv1_8t},
+		{" 1/8  ", push3.ButtonDiv1_8},
+		{" 1/4t ", push3.ButtonDiv1_4t},
+		{" 1/4  ", push3.ButtonDiv1_4},
 	}
-	return strings.Join(parts, " ")
+	for _, entry := range sceneBtns {
+		b.WriteString(m.btn(entry.id, entry.label))
+		b.WriteString("\n")
+	}
+	return b.String()
 }
+
+// --- Pad grid ---
 
 func (m model) renderPadGrid() string {
 	var b strings.Builder
+	padCell := strings.Repeat(" ", padW)
 	for row := range 8 {
-		b.WriteString(" ")
 		for col := range 8 {
 			vel := m.pads[row][col]
 			style := padOffStyle
 			if vel > 0 {
-				style = padStyle(vel)
+				style = padVelStyle(vel)
 			}
-			b.WriteString(style.Render("    "))
+			b.WriteString(style.Render(padCell))
 			if col < 7 {
 				b.WriteString(" ")
 			}
@@ -308,28 +319,22 @@ func (m model) renderPadGrid() string {
 	return b.String()
 }
 
+// --- Navigation/control buttons row (below pads) ---
+
 // --- Styles ---
 
 var (
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#FF8800")).
-			Background(lipgloss.Color("#1a1a1a")).
-			Padding(0, 1)
-
 	dimStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#555555"))
 
 	btnOffStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")).
-			Background(lipgloss.Color("#1a1a1a")).
-			Padding(0, 0)
+			Foreground(lipgloss.Color("#555555")).
+			Background(lipgloss.Color("#1a1a1a"))
 
 	btnOnStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#000000")).
 			Background(lipgloss.Color("#FFFFFF")).
-			Bold(true).
-			Padding(0, 0)
+			Bold(true)
 
 	btnGreenStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#000000")).
@@ -351,36 +356,33 @@ var (
 			Background(lipgloss.Color("#FFFF00")).
 			Bold(true)
 
-	encOffStyle = lipgloss.NewStyle().
+	encStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#555555")).
 			Background(lipgloss.Color("#111111")).
-			Width(6).
+			Width(encW - 1).
 			Align(lipgloss.Center)
 
-	encOnStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFFFF")).
-			Background(lipgloss.Color("#333333")).
-			Width(6).
+	encTouchedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF8800")).
+			Background(lipgloss.Color("#222222")).
+			Width(encW - 1).
+			Bold(true).
 			Align(lipgloss.Center)
 
 	padOffStyle = lipgloss.NewStyle().
 			Background(lipgloss.Color("#111111"))
 )
 
-// padStyle returns a colored style based on velocity.
-func padStyle(velocity uint8) lipgloss.Style {
-	// Map velocity to brightness/hue.
+func padVelStyle(velocity uint8) lipgloss.Style {
 	r, g, b := velocityToRGB(velocity)
 	bg := lipgloss.Color(fmt.Sprintf("#%02X%02X%02X", r, g, b))
 	return lipgloss.NewStyle().Background(bg)
 }
 
-// velocityToRGB maps MIDI velocity to a color gradient.
 func velocityToRGB(vel uint8) (r, g, b uint8) {
 	if vel == 0 {
 		return 0, 0, 0
 	}
-	// Gradient from blue (low velocity) through green to red (high velocity).
 	f := float64(vel) / 127.0
 	switch {
 	case f < 0.5:
@@ -392,13 +394,11 @@ func velocityToRGB(vel uint8) (r, g, b uint8) {
 	}
 }
 
-// centerPad pads a string to at least width, centering the content.
-func centerPad(s string, width int) string {
-	if len(s) >= width {
+func fixWidth(s string, w int) string {
+	// Crude: pad or truncate to w visible characters.
+	n := lipgloss.Width(s)
+	if n >= w {
 		return s
 	}
-	total := width - len(s)
-	left := total / 2
-	right := total - left
-	return strings.Repeat(" ", left) + s + strings.Repeat(" ", right)
+	return s + strings.Repeat(" ", w-n)
 }
