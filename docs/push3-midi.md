@@ -218,6 +218,44 @@ Reverse: `row = (99 - note) / 8`, `col = (note - 36) % 8`
 | 7 | Pitch Bend (ch N) | Ongoing horizontal updates |
 | 8 | Note Off (ch N) | Release |
 
+### Sliding across pad rows
+
+When a finger slides from pad A to pad B (typically across rows), the
+Push 3 reuses the same MPE channel and sends an unusual sequence —
+**no Note On for the destination pad**:
+
+```
+Note On  A  ch=N  vel=V      ← finger touches pad A
+CC 74       ch=N  val=...    ← slide value increases toward 127
+ChanPressure ch=N val=...    ← pressure updates
+...
+CC 74       ch=N  val=127    ← finger reaches top edge of pad A
+Note Off A  ch=N             ← pad A released (finger crossing boundary)
+CC 74       ch=N  val=0      ← slide resets (entering pad B from bottom)
+ChanPressure ch=N val=...    ← pressure continues on same channel
+CC 74       ch=N  val=...    ← slide value increases (moving up pad B)
+PitchBend    ch=N val=8192   ← horizontal position resets
+...
+Note Off B  ch=N             ← finger lifts off pad B
+```
+
+Key observations:
+- The MPE channel (N) is **reused** for the entire slide gesture.
+- **No Note On is sent for pad B** — the transition is implicit.
+- CC 74 (Slide) going from 127 → 0 indicates crossing a pad boundary.
+- The Note Off for pad B identifies the destination pad.
+- Channel Pressure and CC 74 continue flowing between the two Note Offs
+  (these are "orphan" events with no active Note On).
+
+To detect slides programmatically:
+1. Track which note is active per MPE channel.
+2. On Note Off: if the note differs from the channel's active note,
+   a slide occurred — the Note Off note is the destination pad.
+3. Between the two Note Offs, CC 74 and pressure data on the channel
+   relate to the finger position on the destination pad.
+
+Use `cmd/push3-padlog` to visualize these sequences in real time.
+
 ## Touch Strip
 
 | Event    | Message | Channel | Data |
