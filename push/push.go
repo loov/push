@@ -31,6 +31,7 @@ type Push3 struct {
 	OnPad             func(pos push3.PadPosition, velocity uint8, pressed bool)
 	OnPadPressure     func(pos push3.PadPosition, pressure uint8)   // Aftertouch (channel pressure per MPE channel)
 	OnPadSlide        func(pos push3.PadPosition, value uint8)      // CC 74 — vertical finger position
+	OnPadPitchBend    func(pos push3.PadPosition, value uint16)     // MPE pitch bend (0-16383, center 8192)
 	OnEncoder         func(id push3.EncoderID, delta int)
 	OnEncoderTouch    func(id push3.EncoderID, touched bool)
 	OnTouchStrip      func(value uint16)                            // Position 0-16383
@@ -164,11 +165,14 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 		value := uint16(data[1]) | uint16(data[2])<<7
-		// Channel 0: touch strip. Other channels: MPE pad pitch bend.
 		if ch == 0 {
+			// Channel 0: touch strip.
 			if p.OnTouchStrip != nil {
 				p.OnTouchStrip(value)
 			}
+		} else if p.padActive[ch] && p.OnPadPitchBend != nil {
+			// MPE channels: per-pad pitch bend.
+			p.OnPadPitchBend(p.activePads[ch], value)
 		}
 		return
 
