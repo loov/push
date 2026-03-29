@@ -208,6 +208,13 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 
+		// Encoders and buttons are always on channel 0.
+		// MPE pad events use channels 1-15, so skip encoder/button
+		// handling for non-zero channels.
+		if ch != 0 {
+			return
+		}
+
 		// Swing/Tempo encoder click (CC 15 sends val=127 press, val=0 release).
 		if cc == byte(push3.ButtonSwingTempoPress) {
 			if p.OnButton != nil {
