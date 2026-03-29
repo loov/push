@@ -81,8 +81,13 @@ var allButtonCCs = []uint8{
 	byte(push3.ButtonShift),
 	byte(push3.ButtonSelect),
 
-	// Browse
-	byte(push3.ButtonBrowse),
+	// Encoder presses
+	byte(push3.ButtonVolumePress),
+
+	// Jog wheel
+	byte(push3.ButtonJogClick),
+	byte(push3.ButtonJogPushLeft),
+	byte(push3.ButtonJogPushRight),
 
 	// Upper display buttons
 	byte(push3.ButtonUpper1),

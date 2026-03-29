@@ -50,10 +50,11 @@ func TestEncoderFromTouchNote(t *testing.T) {
 	}{
 		{"track 1", 0, push3.EncoderTrack1, true},
 		{"track 8", 7, push3.EncoderTrack8, true},
-		{"master", 8, push3.EncoderMaster, true},
-		{"swing", 9, push3.EncoderSwing, true},
+		{"volume", 8, push3.EncoderVolume, true},
 		{"tempo", 10, push3.EncoderTempo, true},
-		{"out of range", 11, 0, false},
+		{"jog", 11, push3.EncoderJog, true},
+		{"unused 9", 9, 0, false},
+		{"out of range", 12, 0, false},
 		{"pad note", 36, 0, false},
 	}
 	for _, tt := range tests {

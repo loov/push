@@ -31,6 +31,7 @@ func PadPositionFromNote(note uint8) (PadPosition, bool) {
 // EncoderID identifies one of the rotary encoders.
 type EncoderID uint8
 
+// Encoder IDs (discovered via cmd/push3-discover).
 const (
 	EncoderTrack1 EncoderID = iota + 1
 	EncoderTrack2
@@ -40,9 +41,10 @@ const (
 	EncoderTrack6
 	EncoderTrack7
 	EncoderTrack8
-	EncoderMaster
-	EncoderTempo
-	EncoderSwing
+	EncoderVolume // Large encoder on the left
+	EncoderTempo  // Left half of Swing/Tempo encoder
+	EncoderSwing  // Right half of Swing/Tempo encoder
+	EncoderJog    // Jog wheel on the right
 )
 
 // EncoderCC returns the MIDI CC number for this encoder's rotation.
@@ -50,12 +52,14 @@ func (e EncoderID) EncoderCC() uint8 {
 	switch {
 	case e >= EncoderTrack1 && e <= EncoderTrack8:
 		return 70 + uint8(e) // CC 71-78
-	case e == EncoderMaster:
+	case e == EncoderVolume:
 		return 79
 	case e == EncoderTempo:
 		return 14
 	case e == EncoderSwing:
 		return 15
+	case e == EncoderJog:
+		return 70
 	default:
 		return 0
 	}
@@ -68,11 +72,13 @@ func EncoderFromCC(cc uint8) (EncoderID, bool) {
 	case cc >= 71 && cc <= 78:
 		return EncoderID(cc - 70), true
 	case cc == 79:
-		return EncoderMaster, true
+		return EncoderVolume, true
 	case cc == 14:
 		return EncoderTempo, true
 	case cc == 15:
 		return EncoderSwing, true
+	case cc == 70:
+		return EncoderJog, true
 	default:
 		return 0, false
 	}
@@ -83,12 +89,14 @@ func (e EncoderID) EncoderTouchNote() uint8 {
 	switch {
 	case e >= EncoderTrack1 && e <= EncoderTrack8:
 		return uint8(e) - 1 // Notes 0-7
-	case e == EncoderMaster:
+	case e == EncoderVolume:
 		return 8
-	case e == EncoderSwing:
-		return 9
 	case e == EncoderTempo:
 		return 10
+	case e == EncoderSwing:
+		return 10 // Shares touch note with Tempo (same physical knob)
+	case e == EncoderJog:
+		return 11
 	default:
 		return 0
 	}
@@ -171,8 +179,14 @@ const (
 	ButtonShift  ButtonID = 49
 	ButtonSelect ButtonID = 48
 
-	// Browse
-	ButtonBrowse ButtonID = 111
+	// Encoder presses
+	ButtonVolumePress ButtonID = 111 // Volume encoder click (was incorrectly ButtonBrowse)
+
+	// Jog wheel actions (discovered via push3-discover)
+	ButtonJogClick     ButtonID = 94 // Press down
+	ButtonJogPushLeft  ButtonID = 93 // Push sideways left
+	ButtonJogPushRight ButtonID = 95 // Push sideways right
+	// Jog rotation: CC 70 (EncoderJog), touch: Note 11
 
 	// Upper display buttons
 	ButtonUpper1 ButtonID = 102

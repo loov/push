@@ -17,53 +17,52 @@ import (
 	"github.com/loov/logic-push3/push"
 )
 
-// Buttons to discover, in a logical order matching the physical layout.
-var buttonsToDiscover = []string{
-	// Top-left row
-	"Sets", "Setup", "Learn", "User",
-	// Top-right row
-	"Device", "Mix", "Clip", "Session",
-	// Display area
-	"Undo", "Save", "Add", "Swap",
-	// Bottom-left row
-	"Lock", "Stop Clip", "Mute", "Solo",
-	// Bottom-right
-	"Master",
-	// Left side (top to bottom)
-	// Skipping encoder presses (Volume, Swing/Tempo) — handle separately.
-	"Tap Tempo", "Metronome", "Quantize",
-	"Fixed Length", "Automate",
-	"New", "Capture", "Record", "Play",
-	// Center
-	// "Upper Display 1",
-	"Upper Display 2", "Upper Display 3", "Upper Display 4",
-	"Upper Display 5", "Upper Display 6", "Upper Display 7", "Upper Display 8",
-	"Lower Display 1", "Lower Display 2", "Lower Display 3", "Lower Display 4",
-	"Lower Display 5", "Lower Display 6", "Lower Display 7", "Lower Display 8",
-	// Right side
-	"1/32t", "1/32", "1/16t", "1/16", "1/8t", "1/8", "1/4t", "1/4",
-	// D-pad
-	"D-pad Up", "D-pad Down", "D-pad Left", "D-pad Right", "D-pad Center",
-	// Right buttons
-	"Note", "Session (right side)",
-	"Scale", "Layout",
-	"Repeat", "Accent",
-	"Double Loop", "Duplicate",
-	"Convert", "Delete",
-	// Navigation
-	"Octave Up", "Octave Down", "Page Left", "Page Right",
-	// Bottom right
-	"Shift", "Select",
-	// Browse
-	"Browse",
+// item describes something to discover.
+type item struct {
+	name string
+	// If true, capture all events until Enter (for encoders with touch+press+rotate).
+	// If false, auto-advance on press+release (for simple buttons).
+	captureAll bool
 }
 
-// Encoder rotation CCs to ignore (these fire when pressing encoder buttons).
-var encoderCCs = map[uint8]bool{
-	14: true, 15: true, // Tempo, Swing
-	71: true, 72: true, 73: true, 74: true, // Track 1-4
-	75: true, 76: true, 77: true, 78: true, // Track 5-8
-	79: true, // Master
+var itemsToDiscover = []item{
+	// Jog wheel — each action separately
+	{"Jog wheel: ROTATE clockwise only", true},
+	{"Jog wheel: CLICK (press down)", true},
+	{"Jog wheel: PUSH LEFT", true},
+	{"Jog wheel: PUSH RIGHT", true},
+	{"Jog wheel: TOUCH (just touch, don't press)", true},
+
+	// Buttons (auto-advance)
+	{"Sets", false}, {"Setup", false}, {"Learn", false}, {"User", false},
+	{"Device", false}, {"Mix", false}, {"Clip", false}, {"Session", false},
+	{"Undo", false}, {"Save", false}, {"Add", false}, {"Swap", false},
+	{"Lock", false}, {"Stop Clip", false}, {"Mute", false}, {"Solo", false},
+	{"Master", false},
+	{"Tap Tempo", false}, {"Metronome", false}, {"Quantize", false},
+	{"Fixed Length", false}, {"Automate", false},
+	{"New", false}, {"Capture", false}, {"Record", false}, {"Play", false},
+	{"Upper Display 1", false}, {"Upper Display 2", false},
+	{"Upper Display 3", false}, {"Upper Display 4", false},
+	{"Upper Display 5", false}, {"Upper Display 6", false},
+	{"Upper Display 7", false}, {"Upper Display 8", false},
+	{"Lower Display 1", false}, {"Lower Display 2", false},
+	{"Lower Display 3", false}, {"Lower Display 4", false},
+	{"Lower Display 5", false}, {"Lower Display 6", false},
+	{"Lower Display 7", false}, {"Lower Display 8", false},
+	{"1/32t", false}, {"1/32", false}, {"1/16t", false}, {"1/16", false},
+	{"1/8t", false}, {"1/8", false}, {"1/4t", false}, {"1/4", false},
+	{"D-pad Up", false}, {"D-pad Down", false},
+	{"D-pad Left", false}, {"D-pad Right", false}, {"D-pad Center", false},
+	{"Note", false}, {"Session (right side)", false},
+	{"Scale", false}, {"Layout", false},
+	{"Repeat", false}, {"Accent", false},
+	{"Double Loop", false}, {"Duplicate", false},
+	{"Convert", false}, {"Delete", false},
+	{"Octave Up", false}, {"Octave Down", false},
+	{"Page Left", false}, {"Page Right", false},
+	{"Shift", false}, {"Select", false},
+	{"Browse", false},
 }
 
 // Pad notes to ignore (36-99 are pads, not buttons).
@@ -71,15 +70,33 @@ func isPadNote(note uint8) bool {
 	return note >= 36 && note <= 99
 }
 
-type result struct {
-	name   string
-	kind   string // "CC" or "Note"
-	number int
+type event struct {
+	kind   string // "CC", "Note", "NoteOff", "PitchBend", "ChanPressure", "PolyAT"
 	ch     int
+	number int
+	value  int
 }
 
-// print writes a line with \r\n for raw terminal mode.
-func print(format string, args ...any) {
+func (e event) String() string {
+	switch e.kind {
+	case "CC":
+		return fmt.Sprintf("CC  %3d (0x%02X) val=%3d ch=%d", e.number, e.number, e.value, e.ch)
+	case "Note":
+		return fmt.Sprintf("Note %3d (0x%02X) vel=%3d ch=%d", e.number, e.number, e.value, e.ch)
+	case "NoteOff":
+		return fmt.Sprintf("NoteOff %3d (0x%02X) ch=%d", e.number, e.number, e.ch)
+	default:
+		return fmt.Sprintf("%s num=%d val=%d ch=%d", e.kind, e.number, e.value, e.ch)
+	}
+}
+
+type capturedItem struct {
+	name   string
+	events []event
+}
+
+// writeln writes a line with \r\n for raw terminal mode.
+func writeln(format string, args ...any) {
 	s := fmt.Sprintf(format, args...)
 	fmt.Print(s + "\r\n")
 }
@@ -91,7 +108,6 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
-	// Switch terminal to raw mode for single-keystroke backspace.
 	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
 		log.Fatal(err)
@@ -109,27 +125,39 @@ func main() {
 		log.Fatal(err)
 	}
 
-	print("Connected to %q", src.DisplayName())
-	print("Press the prompted button on Push 3. Backspace to undo. Ctrl+C to exit.")
-	print("")
+	writeln("Connected to %q", src.DisplayName())
+	writeln("")
+	writeln("For encoders: touch, press, and rotate — then press Enter to continue.")
+	writeln("For buttons:  press and release — auto-advances.")
+	writeln("Backspace to undo. Ctrl+C to exit.")
+	writeln("")
 
 	var mu sync.Mutex
 	idx := 0
 	waitingForRelease := false
-	var results []result
+	var captured []capturedItem     // completed items
+	var currentEvents []event       // events for current captureAll item
+	seen := map[string]bool{}       // dedup events for captureAll mode
 
 	printPrompt := func() {
-		if idx < len(buttonsToDiscover) {
-			print("")
-			print(">>> [%d/%d] Press: %s", idx+1, len(buttonsToDiscover), buttonsToDiscover[idx])
+		if idx < len(itemsToDiscover) {
+			it := itemsToDiscover[idx]
+			mode := ""
+			if it.captureAll {
+				mode = " [Enter=next, show all events]"
+			}
+			writeln("")
+			writeln(">>> [%d/%d] %s%s", idx+1, len(itemsToDiscover), it.name, mode)
+			currentEvents = nil
+			seen = map[string]bool{}
 		} else {
-			print("")
-			print("=== All buttons discovered! ===")
-			printResults(results)
+			writeln("")
+			writeln("=== All items discovered! ===")
+			printAllResults(captured)
 		}
 	}
 
-	// Keyboard listener for backspace (undo).
+	// Keyboard listener.
 	go func() {
 		buf := make([]byte, 1)
 		for {
@@ -137,23 +165,34 @@ func main() {
 			if err != nil {
 				return
 			}
+			mu.Lock()
 			switch buf[0] {
-			case 127, 8: // Backspace / Delete
-				mu.Lock()
+			case 13, 10: // Enter
+				if idx < len(itemsToDiscover) && itemsToDiscover[idx].captureAll {
+					// Save current events and advance.
+					captured = append(captured, capturedItem{
+						name:   itemsToDiscover[idx].name,
+						events: append([]event{}, currentEvents...),
+					})
+					idx++
+					printPrompt()
+				}
+			case 127, 8: // Backspace
 				if idx > 0 && !waitingForRelease {
 					idx--
-					if len(results) > 0 {
-						removed := results[len(results)-1]
-						results = results[:len(results)-1]
-						print("    ↩ Undid: %s (%s %d)", removed.name, removed.kind, removed.number)
+					if len(captured) > 0 && captured[len(captured)-1].name == itemsToDiscover[idx].name {
+						removed := captured[len(captured)-1]
+						captured = captured[:len(captured)-1]
+						writeln("    ↩ Undid: %s (%d events)", removed.name, len(removed.events))
 					}
 					printPrompt()
 				}
-				mu.Unlock()
 			case 3: // Ctrl+C
+				mu.Unlock()
 				stop()
 				return
 			}
+			mu.Unlock()
 		}
 	}()
 
@@ -167,66 +206,57 @@ func main() {
 		mu.Lock()
 		defer mu.Unlock()
 
-		status := data[0]
-		ch := int(status & 0x0F)
-		kind := status & 0xF0
+		if idx >= len(itemsToDiscover) {
+			return
+		}
 
-		switch kind {
-		case 0xB0: // CC
-			if len(data) < 3 {
-				return
+		ev := parseEvent(data)
+		if ev == nil {
+			return
+		}
+
+		it := itemsToDiscover[idx]
+
+		if it.captureAll {
+			// Show every unique event type.
+			key := fmt.Sprintf("%s-%d", ev.kind, ev.number)
+			if !seen[key] {
+				seen[key] = true
+				currentEvents = append(currentEvents, *ev)
+				writeln("    %s", ev)
 			}
-			cc := data[1]
-			val := data[2]
+			return
+		}
 
-			// Ignore encoder rotation CCs.
-			if encoderCCs[cc] {
-				return
-			}
-
-			if val > 0 && !waitingForRelease {
-				name := ""
-				if idx < len(buttonsToDiscover) {
-					name = buttonsToDiscover[idx]
-				}
-				print("    %-25s  CC  %3d  (0x%02X)  ch=%d", name, cc, cc, ch)
-				results = append(results, result{name, "CC", int(cc), ch})
+		// Auto-advance mode for simple buttons.
+		switch ev.kind {
+		case "CC":
+			if ev.value > 0 && !waitingForRelease {
+				writeln("    %-25s  %s", it.name, ev)
+				captured = append(captured, capturedItem{
+					name:   it.name,
+					events: []event{*ev},
+				})
 				waitingForRelease = true
-			} else if val == 0 && waitingForRelease {
+			} else if ev.value == 0 && waitingForRelease {
 				waitingForRelease = false
 				idx++
 				printPrompt()
 			}
-
-		case 0x90: // Note On
-			if len(data) < 3 {
-				return
-			}
-			note := data[1]
-			vel := data[2]
-
-			// Ignore pad notes.
-			if isPadNote(note) {
-				return
-			}
-			if vel > 0 && !waitingForRelease {
-				name := ""
-				if idx < len(buttonsToDiscover) {
-					name = buttonsToDiscover[idx]
-				}
-				print("    %-25s  Note %3d  (0x%02X)  vel=%d  ch=%d", name, note, note, vel, ch)
-				results = append(results, result{name, "Note", int(note), ch})
+		case "Note":
+			if ev.value > 0 && !waitingForRelease {
+				writeln("    %-25s  %s", it.name, ev)
+				captured = append(captured, capturedItem{
+					name:   it.name,
+					events: []event{*ev},
+				})
 				waitingForRelease = true
-			} else if vel == 0 && waitingForRelease {
+			} else if ev.value == 0 && waitingForRelease {
 				waitingForRelease = false
 				idx++
 				printPrompt()
 			}
-
-		case 0x80: // Note Off
-			if len(data) >= 2 && isPadNote(data[1]) {
-				return
-			}
+		case "NoteOff":
 			if waitingForRelease {
 				waitingForRelease = false
 				idx++
@@ -239,14 +269,69 @@ func main() {
 	}
 
 	<-ctx.Done()
-	print("")
-	printResults(results)
+	writeln("")
+	printAllResults(captured)
 }
 
-func printResults(results []result) {
-	print("")
-	print("── Results ──")
-	for _, r := range results {
-		print("  %-25s  %4s  %3d  (0x%02X)  ch=%d", r.name, r.kind, r.number, r.number, r.ch)
+func parseEvent(data []byte) *event {
+	if len(data) < 2 {
+		return nil
+	}
+	status := data[0]
+	ch := int(status & 0x0F)
+	kind := status & 0xF0
+
+	switch kind {
+	case 0xB0: // CC
+		if len(data) < 3 {
+			return nil
+		}
+		return &event{"CC", ch, int(data[1]), int(data[2])}
+	case 0x90: // Note On
+		if len(data) < 3 {
+			return nil
+		}
+		if isPadNote(data[1]) {
+			return nil
+		}
+		vel := int(data[2])
+		if vel == 0 {
+			return &event{"NoteOff", ch, int(data[1]), 0}
+		}
+		return &event{"Note", ch, int(data[1]), vel}
+	case 0x80: // Note Off
+		if len(data) < 3 || isPadNote(data[1]) {
+			return nil
+		}
+		return &event{"NoteOff", ch, int(data[1]), 0}
+	case 0xE0: // Pitch Bend
+		if len(data) < 3 {
+			return nil
+		}
+		val := int(data[1]) | int(data[2])<<7
+		return &event{"PitchBend", ch, 0, val}
+	case 0xD0: // Channel Pressure
+		return &event{"ChanPressure", ch, 0, int(data[1])}
+	case 0xA0: // Poly Aftertouch
+		if len(data) < 3 {
+			return nil
+		}
+		return &event{"PolyAT", ch, int(data[1]), int(data[2])}
+	}
+	return nil
+}
+
+func printAllResults(items []capturedItem) {
+	writeln("")
+	writeln("── Results ──")
+	for _, item := range items {
+		if len(item.events) == 1 {
+			writeln("  %-30s  %s", item.name, item.events[0])
+		} else {
+			writeln("  %s:", item.name)
+			for _, ev := range item.events {
+				writeln("    %s", ev)
+			}
+		}
 	}
 }
