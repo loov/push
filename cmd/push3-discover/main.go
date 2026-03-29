@@ -26,9 +26,10 @@ type item struct {
 }
 
 var itemsToDiscover = []item{
-	// Touch strip
-	{"Touch strip: TOUCH (place finger, don't move)", true},
-	{"Touch strip: SLIDE (drag finger up and down)", true},
+	// Single pad — capture all events
+	{"Pad: LIGHT TAP (press and release quickly)", true},
+	{"Pad: HARD PRESS (press firmly and hold, then release)", true},
+	{"Pad: PRESS AND SLIDE PRESSURE (press and vary pressure)", true},
 
 	// Buttons (auto-advance)
 	{"Sets", false}, {"Setup", false}, {"Learn", false}, {"User", false},
@@ -62,7 +63,7 @@ var itemsToDiscover = []item{
 	{"Browse", false},
 }
 
-// Pad notes to ignore (36-99 are pads, not buttons).
+// isPadNote returns true for pad notes (36-99).
 func isPadNote(note uint8) bool {
 	return note >= 36 && note <= 99
 }

@@ -12,19 +12,30 @@ import (
 	"github.com/loov/logic-push3/push3"
 )
 
+// mpeCCSlide is the CC number for MPE "Slide" (vertical finger position).
+const mpeCCSlide = 74
+
 // Push3 represents a connected Push 3 device.
 type Push3 struct {
 	input  *midi.InputPort
 	output *midi.OutputPort
 
+	// MPE channel → pad position tracking.
+	// Each pad press gets a unique MIDI channel; we track it so
+	// aftertouch and slide events can be routed to the correct pad.
+	activePads [16]push3.PadPosition // indexed by MIDI channel
+	padActive  [16]bool             // whether channel has an active pad
+
 	// Event callbacks. Set these before calling Connect.
-	OnButton         func(id push3.ButtonID, pressed bool)
-	OnPad            func(pos push3.PadPosition, velocity uint8, pressed bool)
-	OnEncoder        func(id push3.EncoderID, delta int)
-	OnEncoderTouch   func(id push3.EncoderID, touched bool)
-	OnTouchStrip     func(value uint16)          // Position 0-16383
-	OnTouchStripTouch func(touched bool)          // Finger on/off
-	OnRawMIDI        func(data []byte)
+	OnButton          func(id push3.ButtonID, pressed bool)
+	OnPad             func(pos push3.PadPosition, velocity uint8, pressed bool)
+	OnPadPressure     func(pos push3.PadPosition, pressure uint8)   // Aftertouch (channel pressure per MPE channel)
+	OnPadSlide        func(pos push3.PadPosition, value uint8)      // CC 74 — vertical finger position
+	OnEncoder         func(id push3.EncoderID, delta int)
+	OnEncoderTouch    func(id push3.EncoderID, touched bool)
+	OnTouchStrip      func(value uint16)                            // Position 0-16383
+	OnTouchStripTouch func(touched bool)                            // Finger on/off
+	OnRawMIDI         func(data []byte)
 }
 
 // Push 3 MIDI port name patterns.
@@ -69,6 +80,8 @@ func (p *Push3) handleMIDI(data []byte) {
 	}
 
 	status := data[0] & 0xF0
+	ch := data[0] & 0x0F
+
 	switch status {
 	case 0x90: // Note On
 		if len(data) < 3 {
@@ -78,8 +91,12 @@ func (p *Push3) handleMIDI(data []byte) {
 		velocity := data[2]
 		pressed := velocity > 0
 
-		// Check if it's a pad note (36-99).
+		// Check if it's a pad note (36-99). Pads use MPE channels.
 		if pos, ok := push3.PadPositionFromNote(note); ok {
+			if pressed {
+				p.activePads[ch] = pos
+				p.padActive[ch] = true
+			}
 			if p.OnPad != nil {
 				p.OnPad(pos, velocity, pressed)
 			}
@@ -110,6 +127,7 @@ func (p *Push3) handleMIDI(data []byte) {
 
 		// Pad release.
 		if pos, ok := push3.PadPositionFromNote(note); ok {
+			p.padActive[ch] = false
 			if p.OnPad != nil {
 				p.OnPad(pos, 0, false)
 			}
@@ -132,13 +150,25 @@ func (p *Push3) handleMIDI(data []byte) {
 			return
 		}
 
-	case 0xE0: // Pitch Bend — touch strip position
+	case 0xD0: // Channel Pressure — pad aftertouch (MPE)
+		if len(data) < 2 {
+			return
+		}
+		if p.padActive[ch] && p.OnPadPressure != nil {
+			p.OnPadPressure(p.activePads[ch], data[1])
+		}
+		return
+
+	case 0xE0: // Pitch Bend
 		if len(data) < 3 {
 			return
 		}
 		value := uint16(data[1]) | uint16(data[2])<<7
-		if p.OnTouchStrip != nil {
-			p.OnTouchStrip(value)
+		// Channel 0: touch strip. Other channels: MPE pad pitch bend.
+		if ch == 0 {
+			if p.OnTouchStrip != nil {
+				p.OnTouchStrip(value)
+			}
 		}
 		return
 
@@ -148,6 +178,14 @@ func (p *Push3) handleMIDI(data []byte) {
 		}
 		cc := data[1]
 		value := data[2]
+
+		// MPE Slide (CC 74) — pad vertical finger position.
+		if cc == mpeCCSlide && p.padActive[ch] {
+			if p.OnPadSlide != nil {
+				p.OnPadSlide(p.activePads[ch], value)
+			}
+			return
+		}
 
 		// Encoder rotation.
 		if enc, ok := push3.EncoderFromCC(cc); ok {
