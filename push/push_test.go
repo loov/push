@@ -14,7 +14,7 @@ func TestIsButtonCC(t *testing.T) {
 	}{
 		{"play", byte(push3.ButtonPlay), true},
 		{"record", byte(push3.ButtonRecord), true},
-		{"stop", byte(push3.ButtonStop), true},
+		{"stop", byte(push3.ButtonStopClip), true},
 		{"shift", byte(push3.ButtonShift), true},
 		{"upper1", byte(push3.ButtonUpper1), true},
 		{"lower1", byte(push3.ButtonLower1), true},

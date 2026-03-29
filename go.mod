@@ -21,4 +21,5 @@ require (
 	github.com/youpy/go-coremidi v0.0.0-20260121074832-f5c70cc1b8cc // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/term v0.41.0 // indirect
 )

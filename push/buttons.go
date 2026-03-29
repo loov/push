@@ -18,10 +18,33 @@ func isButtonCC(cc uint8) bool {
 
 // All known Push 3 button CC numbers.
 var allButtonCCs = []uint8{
+	// Top-left row
+	byte(push3.ButtonSets),
+	byte(push3.ButtonSetup),
+	byte(push3.ButtonLearn),
+	byte(push3.ButtonUser),
+
+	// Top-right row
+	byte(push3.ButtonDevice),
+	byte(push3.ButtonMix),
+	byte(push3.ButtonClip),
+	byte(push3.ButtonSession),
+
+	// Display area
+	byte(push3.ButtonUndo),
+	byte(push3.ButtonSave),
+	byte(push3.ButtonAdd),
+	byte(push3.ButtonSwap),
+
+	// Bottom-left row
+	byte(push3.ButtonLock),
+	byte(push3.ButtonStopClip),
+	byte(push3.ButtonMute),
+	byte(push3.ButtonSolo),
+
 	// Transport
 	byte(push3.ButtonPlay),
 	byte(push3.ButtonRecord),
-	byte(push3.ButtonStop),
 	byte(push3.ButtonDuplicate),
 
 	// Navigation
@@ -30,26 +53,15 @@ var allButtonCCs = []uint8{
 	byte(push3.ButtonLeft),
 	byte(push3.ButtonRight),
 
-	// Mode
+	// Bottom-right
 	byte(push3.ButtonShift),
 	byte(push3.ButtonSelect),
-	byte(push3.ButtonNote),
-	byte(push3.ButtonSession),
 
-	// Function
+	// Mode
+	byte(push3.ButtonNote),
+	byte(push3.ButtonBrowse),
 	byte(push3.ButtonQuantize),
 	byte(push3.ButtonDelete),
-	byte(push3.ButtonUndo),
-
-	// Device/Browse/Mix/Clip
-	byte(push3.ButtonDevice),
-	byte(push3.ButtonBrowse),
-	byte(push3.ButtonMix),
-	byte(push3.ButtonClip),
-
-	// Mute/Solo
-	byte(push3.ButtonMute),
-	byte(push3.ButtonSolo),
 
 	// Upper display buttons
 	byte(push3.ButtonUpper1),

@@ -106,56 +106,76 @@ func DecodeRelative(value uint8) int {
 // ButtonID identifies a Push 3 button by its CC number.
 type ButtonID uint8
 
-// Push 3 button CC assignments.
+// Push 3 button CC assignments (discovered via cmd/push3-discover).
 const (
-	ButtonPlay    ButtonID = 85
-	ButtonRecord  ButtonID = 86
-	ButtonStop    ButtonID = 29
-	ButtonDuplicate ButtonID = 88
+	// Top-left row
+	ButtonSets  ButtonID = 80
+	ButtonSetup ButtonID = 30
+	ButtonLearn ButtonID = 81
+	ButtonUser  ButtonID = 59
 
-	ButtonUp      ButtonID = 46
-	ButtonDown    ButtonID = 47
-	ButtonLeft    ButtonID = 44
-	ButtonRight   ButtonID = 45
-
-	ButtonShift   ButtonID = 49
-	ButtonSelect  ButtonID = 48
-	ButtonNote    ButtonID = 50
-	ButtonSession ButtonID = 51
-
-	ButtonQuantize ButtonID = 116
-	ButtonDelete   ButtonID = 118
-	ButtonUndo     ButtonID = 119
-
+	// Top-right row
 	ButtonDevice  ButtonID = 110
-	ButtonBrowse  ButtonID = 111
 	ButtonMix     ButtonID = 112
 	ButtonClip    ButtonID = 113
+	ButtonSession ButtonID = 34
 
+	// Display area
+	ButtonUndo ButtonID = 119
+	ButtonSave ButtonID = 82
+	ButtonAdd  ButtonID = 32
+	ButtonSwap ButtonID = 33
+
+	// Bottom-left row
+	ButtonLock    ButtonID = 83
+	ButtonStopClip ButtonID = 29
 	ButtonMute    ButtonID = 60
 	ButtonSolo    ButtonID = 61
 
+	// Transport
+	ButtonPlay      ButtonID = 85
+	ButtonRecord    ButtonID = 86
+	ButtonDuplicate ButtonID = 88
+
+	// Navigation (D-pad)
+	ButtonUp    ButtonID = 46
+	ButtonDown  ButtonID = 47
+	ButtonLeft  ButtonID = 44
+	ButtonRight ButtonID = 45
+
+	// Bottom-right
+	ButtonShift  ButtonID = 49
+	ButtonSelect ButtonID = 48
+
+	// Right-side mode buttons
+	ButtonNote   ButtonID = 50
+	ButtonBrowse ButtonID = 111
+
+	// Function
+	ButtonQuantize ButtonID = 116
+	ButtonDelete   ButtonID = 118
+
 	// Upper display buttons (above encoders)
-	ButtonUpper1  ButtonID = 102
-	ButtonUpper2  ButtonID = 103
-	ButtonUpper3  ButtonID = 104
-	ButtonUpper4  ButtonID = 105
-	ButtonUpper5  ButtonID = 106
-	ButtonUpper6  ButtonID = 107
-	ButtonUpper7  ButtonID = 108
-	ButtonUpper8  ButtonID = 109
+	ButtonUpper1 ButtonID = 102
+	ButtonUpper2 ButtonID = 103
+	ButtonUpper3 ButtonID = 104
+	ButtonUpper4 ButtonID = 105
+	ButtonUpper5 ButtonID = 106
+	ButtonUpper6 ButtonID = 107
+	ButtonUpper7 ButtonID = 108
+	ButtonUpper8 ButtonID = 109
 
 	// Lower display buttons (below encoders)
-	ButtonLower1  ButtonID = 20
-	ButtonLower2  ButtonID = 21
-	ButtonLower3  ButtonID = 22
-	ButtonLower4  ButtonID = 23
-	ButtonLower5  ButtonID = 24
-	ButtonLower6  ButtonID = 25
-	ButtonLower7  ButtonID = 26
-	ButtonLower8  ButtonID = 27
+	ButtonLower1 ButtonID = 20
+	ButtonLower2 ButtonID = 21
+	ButtonLower3 ButtonID = 22
+	ButtonLower4 ButtonID = 23
+	ButtonLower5 ButtonID = 24
+	ButtonLower6 ButtonID = 25
+	ButtonLower7 ButtonID = 26
+	ButtonLower8 ButtonID = 27
 
-	ButtonMaster  ButtonID = 28
+	ButtonMaster ButtonID = 28
 
 	// Time division buttons
 	ButtonDiv1_4   ButtonID = 36

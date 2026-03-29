@@ -41,10 +41,13 @@ func init() {
 	}
 
 	// ── Top button row (rows 3-5) ──
-	// Left: Sets, Setup, Learn, User — inner: col 2-6 each (width 5), separated by ┬/│
-	// These are static (id=0), skip.
+	// Left: Sets, Setup, Learn, User
+	add(3, 5, 2, 5, push3.ButtonSets)
+	add(3, 5, 8, 5, push3.ButtonSetup)
+	add(3, 5, 14, 5, push3.ButtonLearn)
+	add(3, 5, 20, 5, push3.ButtonUser)
 
-	// Center: display buttons 1-8 — inner: col 31-35, 37-41, ... (width 5 each)
+	// Center: display buttons 1-8
 	topIDs := [8]push3.ButtonID{
 		push3.ButtonUpper1, push3.ButtonUpper2, push3.ButtonUpper3, push3.ButtonUpper4,
 		push3.ButtonUpper5, push3.ButtonUpper6, push3.ButtonUpper7, push3.ButtonUpper8,
@@ -60,10 +63,14 @@ func init() {
 	add(3, 5, 99, 5, push3.ButtonSession)
 
 	// ── Display area buttons (rows 6-12) ──
-	add(6, 8, 20, 5, push3.ButtonUndo) // Undo box rows 6-8, inner col 20-24
+	add(6, 8, 20, 5, push3.ButtonUndo)
+	add(10, 12, 20, 5, push3.ButtonSave)
+	add(6, 8, 82, 5, push3.ButtonAdd)
+	add(10, 12, 81, 5, push3.ButtonSwap)
 
 	// ── Bottom button row (rows 13-15) ──
-	add(13, 15, 8, 5, push3.ButtonStop)
+	add(13, 15, 2, 5, push3.ButtonLock)
+	add(13, 15, 8, 5, push3.ButtonStopClip)
 	add(13, 15, 14, 5, push3.ButtonMute)
 	add(13, 15, 20, 5, push3.ButtonSolo)
 
