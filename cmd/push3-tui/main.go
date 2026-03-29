@@ -39,11 +39,26 @@ func main() {
 	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
 		prog.Send(padMsg{pos: pos, velocity: velocity, pressed: pressed})
 	}
+	p.OnPadPressure = func(pos push3.PadPosition, pressure uint8) {
+		prog.Send(padPressureMsg{pos: pos, pressure: pressure})
+	}
+	p.OnPadSlide = func(pos push3.PadPosition, value uint8) {
+		prog.Send(padSlideMsg{pos: pos, value: value})
+	}
+	p.OnPadPitchBend = func(pos push3.PadPosition, value uint16) {
+		prog.Send(padPitchBendMsg{pos: pos, value: value})
+	}
 	p.OnEncoder = func(id push3.EncoderID, delta int) {
 		prog.Send(encoderMsg{id: id, delta: delta})
 	}
 	p.OnEncoderTouch = func(id push3.EncoderID, touched bool) {
 		prog.Send(encoderTouchMsg{id: id, touched: touched})
+	}
+	p.OnTouchStrip = func(value uint16) {
+		prog.Send(touchStripMsg{value: value})
+	}
+	p.OnTouchStripTouch = func(touched bool) {
+		prog.Send(touchStripTouchMsg{touched: touched})
 	}
 
 	if _, err := prog.Run(); err != nil {
@@ -54,19 +69,38 @@ func main() {
 
 // Messages.
 type (
-	buttonMsg       struct{ id push3.ButtonID; pressed bool }
-	padMsg          struct{ pos push3.PadPosition; velocity uint8; pressed bool }
-	encoderMsg      struct{ id push3.EncoderID; delta int }
-	encoderTouchMsg struct{ id push3.EncoderID; touched bool }
+	buttonMsg         struct{ id push3.ButtonID; pressed bool }
+	padMsg            struct{ pos push3.PadPosition; velocity uint8; pressed bool }
+	padPressureMsg    struct{ pos push3.PadPosition; pressure uint8 }
+	padSlideMsg       struct{ pos push3.PadPosition; value uint8 }
+	padPitchBendMsg   struct{ pos push3.PadPosition; value uint16 }
+	encoderMsg        struct{ id push3.EncoderID; delta int }
+	encoderTouchMsg   struct{ id push3.EncoderID; touched bool }
+	touchStripMsg     struct{ value uint16 }
+	touchStripTouchMsg struct{ touched bool }
 )
 
 // Model.
 type model struct {
 	push     *push.Push3
 	buttons  map[push3.ButtonID]bool
-	pads     [8][8]uint8
-	encoders [12]int
-	touched  [12]bool
+	pads     [8][8]padState
+	encoders [16]int
+	touched  [16]bool
+
+	// Touch strip
+	touchStripValue   uint16
+	touchStripTouched bool
+
+	// Last event info for status display
+	lastEvent string
+}
+
+type padState struct {
+	velocity  uint8
+	pressure  uint8
+	slide     uint8
+	pitchBend uint16
 }
 
 func newModel(p *push.Push3) model {
@@ -83,22 +117,67 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case buttonMsg:
 		m.buttons[msg.id] = msg.pressed
+		if msg.pressed {
+			m.lastEvent = fmt.Sprintf("Button CC=%d pressed", msg.id)
+		}
 	case padMsg:
-		m.pads[msg.pos.Row][msg.pos.Col] = msg.velocity
+		if msg.pressed {
+			m.pads[msg.pos.Row][msg.pos.Col].velocity = msg.velocity
+			m.lastEvent = fmt.Sprintf("Pad (%d,%d) vel=%d", msg.pos.Row, msg.pos.Col, msg.velocity)
+		} else {
+			m.pads[msg.pos.Row][msg.pos.Col] = padState{}
+		}
+	case padPressureMsg:
+		m.pads[msg.pos.Row][msg.pos.Col].pressure = msg.pressure
+		m.lastEvent = fmt.Sprintf("Pad (%d,%d) pressure=%d", msg.pos.Row, msg.pos.Col, msg.pressure)
+	case padSlideMsg:
+		m.pads[msg.pos.Row][msg.pos.Col].slide = msg.value
+		m.lastEvent = fmt.Sprintf("Pad (%d,%d) slide=%d", msg.pos.Row, msg.pos.Col, msg.value)
+	case padPitchBendMsg:
+		m.pads[msg.pos.Row][msg.pos.Col].pitchBend = msg.value
+		m.lastEvent = fmt.Sprintf("Pad (%d,%d) bend=%d", msg.pos.Row, msg.pos.Col, msg.value)
 	case encoderMsg:
 		idx := int(msg.id)
 		if idx > 0 && idx < len(m.encoders) {
 			m.encoders[idx] += msg.delta
 		}
+		m.lastEvent = fmt.Sprintf("Encoder %d delta=%d val=%d", msg.id, msg.delta, m.encoders[idx])
 	case encoderTouchMsg:
 		idx := int(msg.id)
 		if idx > 0 && idx < len(m.touched) {
 			m.touched[idx] = msg.touched
+		}
+	case touchStripMsg:
+		m.touchStripValue = msg.value
+		m.lastEvent = fmt.Sprintf("Touch strip pos=%d", msg.value)
+	case touchStripTouchMsg:
+		m.touchStripTouched = msg.touched
+		if msg.touched {
+			m.lastEvent = "Touch strip touched"
+		} else {
+			m.lastEvent = "Touch strip released"
 		}
 	}
 	return m, nil
 }
 
 func (m model) View() tea.View {
-	return tea.NewView(m.renderLayout() + " q/ctrl+c to quit\n")
+	var status string
+
+	// Status line: last event
+	status += fmt.Sprintf(" Last: %s\n", m.lastEvent)
+
+	// Status line: active pad details
+	for r := range 8 {
+		for c := range 8 {
+			ps := m.pads[r][c]
+			if ps.velocity > 0 {
+				status += fmt.Sprintf(" Pad(%d,%d): vel=%-3d prs=%-3d slide=%-3d bend=%-5d\n",
+					r, c, ps.velocity, ps.pressure, ps.slide, ps.pitchBend)
+			}
+		}
+	}
+
+	return tea.NewView(m.renderLayout() + status + " q/ctrl+c to quit\n")
 }
+

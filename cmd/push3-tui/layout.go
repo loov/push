@@ -120,11 +120,13 @@ func init() {
 		add(sceneRows[i], sceneRows[i]+2, 81, 5, id)
 	}
 
-	// ── D-pad (rows 13-17, cols 92-99) ──
-	add(14, 14, 93, 5, push3.ButtonUp)
-	add(15, 15, 91, 1, push3.ButtonLeft)
-	add(15, 15, 97, 1, push3.ButtonRight)
-	add(16, 16, 93, 5, push3.ButtonDown)
+	// ── D-pad (rows 13-17) ──
+	// Each arrow is a single char; highlight just that character.
+	add(14, 14, 96, 1, push3.ButtonUp)    // ^ at col 96
+	add(15, 15, 94, 1, push3.ButtonLeft)  // < at col 94
+	add(15, 15, 96, 1, push3.ButtonDPadCenter) // C at col 96
+	add(15, 15, 98, 1, push3.ButtonRight) // > at col 98
+	add(16, 16, 96, 1, push3.ButtonDown)  // v at col 96
 
 	// ── Right side button pairs ──
 	// Note/Session (rows 19-21)
@@ -143,11 +145,11 @@ func init() {
 	add(28, 30, 90, 6, push3.ButtonConvert)
 	add(28, 30, 97, 6, push3.ButtonDelete)
 
-	// ── Nav pad (rows 32-36, cols 92-99) ──
-	add(33, 33, 93, 5, push3.ButtonOctaveUp)
-	add(34, 34, 91, 1, push3.ButtonPageLeft)
-	add(34, 34, 97, 1, push3.ButtonPageRight)
-	add(35, 35, 93, 5, push3.ButtonOctaveDown)
+	// ── Nav pad (rows 32-36) ──
+	add(33, 33, 96, 1, push3.ButtonOctaveUp)   // ^ at col 96
+	add(34, 34, 94, 1, push3.ButtonPageLeft)   // < at col 94
+	add(34, 34, 98, 1, push3.ButtonPageRight)  // > at col 98
+	add(35, 35, 96, 1, push3.ButtonOctaveDown) // v at col 96
 
 	// Shift/Select (rows 38-40)
 	add(38, 40, 90, 6, push3.ButtonShift)
@@ -169,7 +171,7 @@ func (m model) renderLayout() string {
 	// Stamp pad fills.
 	for pr := range 8 {
 		for pc := range 8 {
-			vel := m.pads[pr][pc]
+			vel := m.pads[pr][pc].velocity
 			if vel > 0 {
 				col := 30 + pc*6
 				// Each pad has 2 content rows.
@@ -177,6 +179,22 @@ func (m model) renderLayout() string {
 				putStr(lines, 18+pr*3, col, "     ")
 			}
 		}
+	}
+
+	// Stamp touch strip position.
+	// Inner area: rows 17-39 (23 rows), cols 20-24 (5 chars).
+	// Value 0 = bottom (row 39), value 16383 = top (row 17).
+	const tsTop, tsBot, tsLeft, tsWidth = 17, 39, 20, 5
+	tsRows := tsBot - tsTop + 1 // 23
+	if m.touchStripTouched {
+		tsRow := tsBot - int(m.touchStripValue)*int(tsRows-1)/16383
+		if tsRow < tsTop {
+			tsRow = tsTop
+		}
+		if tsRow > tsBot {
+			tsRow = tsBot
+		}
+		putStr(lines, tsRow, tsLeft, "=====" )
 	}
 
 	// Build highlight map: for each (row, col) store a style index.
@@ -189,6 +207,13 @@ func (m model) renderLayout() string {
 		for c := col; c < col+width; c++ {
 			highlights[[2]int{row, c}] = idx
 		}
+	}
+
+	// Touch strip highlight.
+	if m.touchStripTouched {
+		tsRow := tsBot - int(m.touchStripValue)*int(tsRows-1)/16383
+		tsRow = max(tsTop, min(tsBot, tsRow))
+		addHighlight(tsRow, tsLeft, tsWidth, touchStripActiveStyle)
 	}
 
 	// Encoder highlights.
@@ -212,7 +237,7 @@ func (m model) renderLayout() string {
 	// Pad highlights.
 	for pr := range 8 {
 		for pc := range 8 {
-			vel := m.pads[pr][pc]
+			vel := m.pads[pr][pc].velocity
 			if vel > 0 {
 				addHighlight(17+pr*3, 30+pc*6, 5, padVelStyle(vel))
 				addHighlight(18+pr*3, 30+pc*6, 5, padVelStyle(vel))
@@ -285,6 +310,10 @@ func velocityToRGB(vel uint8) (r, g, b uint8) {
 // ─── Styles ───
 
 var (
+	touchStripActiveStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#00FFAA")).
+				Bold(true)
+
 	encTouchedStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF8800")).
 			Bold(true)
