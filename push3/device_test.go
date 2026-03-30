@@ -18,7 +18,7 @@ func TestIsButtonCC(t *testing.T) {
 		{"lower1", byte(ButtonLower1), true},
 		{"mute", byte(ButtonMute), true},
 		{"solo", byte(ButtonSolo), true},
-		{"div 1/4", byte(ButtonDiv1_4), true},
+		{"scene 8", byte(ButtonScene8), true},
 
 		// Encoder CCs should NOT be buttons
 		{"encoder CC 71", 71, false},

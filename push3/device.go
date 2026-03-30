@@ -294,9 +294,9 @@ func (p *Device) ClearPads() error {
 
 // SetAllButtonsColor sets all button LEDs to the same palette color.
 func (p *Device) SetAllButtonsColor(paletteIndex uint8) error {
-	for _, cc := range allButtonCCs {
-		if err := p.SetButtonColor(ButtonID(cc), paletteIndex); err != nil {
-			return fmt.Errorf("push: setting button CC %d: %w", cc, err)
+	for _, id := range AllButtons {
+		if err := p.SetButtonColor(id, paletteIndex); err != nil {
+			return fmt.Errorf("push: setting button CC %d: %w", id, err)
 		}
 	}
 	return nil

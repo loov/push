@@ -1,5 +1,7 @@
 package push3
 
+import "fmt"
+
 // Color represents an RGB color for Push 3 LEDs and display.
 type Color struct {
 	R, G, B uint8
@@ -225,16 +227,176 @@ const (
 
 	ButtonMaster ButtonID = 28
 
-	// Time division / scene buttons
-	ButtonDiv1_4   ButtonID = 36
-	ButtonDiv1_4t  ButtonID = 37
-	ButtonDiv1_8   ButtonID = 38
-	ButtonDiv1_8t  ButtonID = 39
-	ButtonDiv1_16  ButtonID = 40
-	ButtonDiv1_16t ButtonID = 41
-	ButtonDiv1_32  ButtonID = 42
-	ButtonDiv1_32t ButtonID = 43
+	// Scene buttons (right column, top to bottom)
+	ButtonScene1 ButtonID = 43 // labeled 1/32t
+	ButtonScene2 ButtonID = 42 // labeled 1/32
+	ButtonScene3 ButtonID = 41 // labeled 1/16t
+	ButtonScene4 ButtonID = 40 // labeled 1/16
+	ButtonScene5 ButtonID = 39 // labeled 1/8t
+	ButtonScene6 ButtonID = 38 // labeled 1/8
+	ButtonScene7 ButtonID = 37 // labeled 1/4t
+	ButtonScene8 ButtonID = 36 // labeled 1/4
 )
+
+// String returns a human-readable name for the button.
+func (b ButtonID) String() string {
+	switch b {
+	case ButtonSets:
+		return "Sets"
+	case ButtonSetup:
+		return "Setup"
+	case ButtonLearn:
+		return "Learn"
+	case ButtonUser:
+		return "User"
+	case ButtonDevice:
+		return "Device"
+	case ButtonMix:
+		return "Mix"
+	case ButtonClip:
+		return "Clip"
+	case ButtonSession:
+		return "Session"
+	case ButtonUndo:
+		return "Undo"
+	case ButtonSave:
+		return "Save"
+	case ButtonAdd:
+		return "Add"
+	case ButtonSwap:
+		return "Swap"
+	case ButtonLock:
+		return "Lock"
+	case ButtonStopClip:
+		return "Stop Clip"
+	case ButtonMute:
+		return "Mute"
+	case ButtonSolo:
+		return "Solo"
+	case ButtonTapTempo:
+		return "Tap Tempo"
+	case ButtonMetronome:
+		return "Metronome"
+	case ButtonQuantize:
+		return "Quantize"
+	case ButtonFixedLen:
+		return "Fixed Length"
+	case ButtonAutomate:
+		return "Automate"
+	case ButtonNew:
+		return "New"
+	case ButtonCapture:
+		return "Capture"
+	case ButtonRecord:
+		return "Record"
+	case ButtonPlay:
+		return "Play"
+	case ButtonNote:
+		return "Note"
+	case ButtonSessionR:
+		return "Session (R)"
+	case ButtonScale:
+		return "Scale"
+	case ButtonLayout:
+		return "Layout"
+	case ButtonRepeat:
+		return "Repeat"
+	case ButtonAccent:
+		return "Accent"
+	case ButtonDoubleLoop:
+		return "Double Loop"
+	case ButtonDuplicate:
+		return "Duplicate"
+	case ButtonConvert:
+		return "Convert"
+	case ButtonDelete:
+		return "Delete"
+	case ButtonUp:
+		return "Up"
+	case ButtonDown:
+		return "Down"
+	case ButtonLeft:
+		return "Left"
+	case ButtonRight:
+		return "Right"
+	case ButtonDPadCenter:
+		return "D-Pad Center"
+	case ButtonOctaveUp:
+		return "Octave Up"
+	case ButtonOctaveDown:
+		return "Octave Down"
+	case ButtonPageLeft:
+		return "Page Left"
+	case ButtonPageRight:
+		return "Page Right"
+	case ButtonShift:
+		return "Shift"
+	case ButtonSelect:
+		return "Select"
+	case ButtonVolumePress:
+		return "Volume Press"
+	case ButtonSwingTempoPress:
+		return "Swing/Tempo Press"
+	case ButtonJogClick:
+		return "Jog Click"
+	case ButtonJogPushLeft:
+		return "Jog Push Left"
+	case ButtonJogPushRight:
+		return "Jog Push Right"
+	case ButtonUpper1:
+		return "Upper 1"
+	case ButtonUpper2:
+		return "Upper 2"
+	case ButtonUpper3:
+		return "Upper 3"
+	case ButtonUpper4:
+		return "Upper 4"
+	case ButtonUpper5:
+		return "Upper 5"
+	case ButtonUpper6:
+		return "Upper 6"
+	case ButtonUpper7:
+		return "Upper 7"
+	case ButtonUpper8:
+		return "Upper 8"
+	case ButtonLower1:
+		return "Lower 1"
+	case ButtonLower2:
+		return "Lower 2"
+	case ButtonLower3:
+		return "Lower 3"
+	case ButtonLower4:
+		return "Lower 4"
+	case ButtonLower5:
+		return "Lower 5"
+	case ButtonLower6:
+		return "Lower 6"
+	case ButtonLower7:
+		return "Lower 7"
+	case ButtonLower8:
+		return "Lower 8"
+	case ButtonMaster:
+		return "Master"
+	case ButtonScene1:
+		return "Scene 1"
+	case ButtonScene2:
+		return "Scene 2"
+	case ButtonScene3:
+		return "Scene 3"
+	case ButtonScene4:
+		return "Scene 4"
+	case ButtonScene5:
+		return "Scene 5"
+	case ButtonScene6:
+		return "Scene 6"
+	case ButtonScene7:
+		return "Scene 7"
+	case ButtonScene8:
+		return "Scene 8"
+	default:
+		return fmt.Sprintf("Button(CC %d)", b)
+	}
+}
 
 // Animation determines how an LED transitions to a new color.
 // The value maps directly to the MIDI channel used when setting the LED.
@@ -306,8 +468,8 @@ const (
 var buttonCCs = map[uint8]bool{}
 
 func init() {
-	for _, cc := range allButtonCCs {
-		buttonCCs[cc] = true
+	for _, id := range AllButtons {
+		buttonCCs[byte(id)] = true
 	}
 }
 
@@ -316,115 +478,115 @@ func isButtonCC(cc uint8) bool {
 	return buttonCCs[cc]
 }
 
-// All known Push 3 button CC numbers.
-var allButtonCCs = []uint8{
+// AllButtons lists all known Push 3 buttons.
+var AllButtons = []ButtonID{
 	// Top-left row
-	byte(ButtonSets),
-	byte(ButtonSetup),
-	byte(ButtonLearn),
-	byte(ButtonUser),
+	ButtonSets,
+	ButtonSetup,
+	ButtonLearn,
+	ButtonUser,
 
 	// Top-right row
-	byte(ButtonDevice),
-	byte(ButtonMix),
-	byte(ButtonClip),
-	byte(ButtonSession),
+	ButtonDevice,
+	ButtonMix,
+	ButtonClip,
+	ButtonSession,
 
 	// Display area
-	byte(ButtonUndo),
-	byte(ButtonSave),
-	byte(ButtonAdd),
-	byte(ButtonSwap),
+	ButtonUndo,
+	ButtonSave,
+	ButtonAdd,
+	ButtonSwap,
 
 	// Bottom-left row
-	byte(ButtonLock),
-	byte(ButtonStopClip),
-	byte(ButtonMute),
-	byte(ButtonSolo),
+	ButtonLock,
+	ButtonStopClip,
+	ButtonMute,
+	ButtonSolo,
 
 	// Transport / left side
-	byte(ButtonTapTempo),
-	byte(ButtonMetronome),
-	byte(ButtonQuantize),
-	byte(ButtonFixedLen),
-	byte(ButtonAutomate),
-	byte(ButtonNew),
-	byte(ButtonCapture),
-	byte(ButtonRecord),
-	byte(ButtonPlay),
+	ButtonTapTempo,
+	ButtonMetronome,
+	ButtonQuantize,
+	ButtonFixedLen,
+	ButtonAutomate,
+	ButtonNew,
+	ButtonCapture,
+	ButtonRecord,
+	ButtonPlay,
 
 	// Right side
-	byte(ButtonNote),
-	byte(ButtonSessionR),
-	byte(ButtonScale),
-	byte(ButtonLayout),
-	byte(ButtonRepeat),
-	byte(ButtonAccent),
-	byte(ButtonDoubleLoop),
-	byte(ButtonDuplicate),
-	byte(ButtonConvert),
-	byte(ButtonDelete),
+	ButtonNote,
+	ButtonSessionR,
+	ButtonScale,
+	ButtonLayout,
+	ButtonRepeat,
+	ButtonAccent,
+	ButtonDoubleLoop,
+	ButtonDuplicate,
+	ButtonConvert,
+	ButtonDelete,
 
 	// D-pad
-	byte(ButtonUp),
-	byte(ButtonDown),
-	byte(ButtonLeft),
-	byte(ButtonRight),
-	byte(ButtonDPadCenter),
+	ButtonUp,
+	ButtonDown,
+	ButtonLeft,
+	ButtonRight,
+	ButtonDPadCenter,
 
 	// Navigation
-	byte(ButtonOctaveUp),
-	byte(ButtonOctaveDown),
-	byte(ButtonPageLeft),
-	byte(ButtonPageRight),
+	ButtonOctaveUp,
+	ButtonOctaveDown,
+	ButtonPageLeft,
+	ButtonPageRight,
 
 	// Bottom-right
-	byte(ButtonShift),
-	byte(ButtonSelect),
+	ButtonShift,
+	ButtonSelect,
 
 	// Encoder presses
-	byte(ButtonVolumePress),
+	ButtonVolumePress,
 	// Note: ButtonSwingTempoPress (CC 15) is NOT listed here because CC 15
 	// is handled as EncoderSwingTempo rotation first. The click is detected
 	// by value 127 on CC 15.
 
 	// Jog wheel
-	byte(ButtonJogClick),
-	byte(ButtonJogPushLeft),
-	byte(ButtonJogPushRight),
+	ButtonJogClick,
+	ButtonJogPushLeft,
+	ButtonJogPushRight,
 
 	// Upper display buttons
-	byte(ButtonUpper1),
-	byte(ButtonUpper2),
-	byte(ButtonUpper3),
-	byte(ButtonUpper4),
-	byte(ButtonUpper5),
-	byte(ButtonUpper6),
-	byte(ButtonUpper7),
-	byte(ButtonUpper8),
+	ButtonUpper1,
+	ButtonUpper2,
+	ButtonUpper3,
+	ButtonUpper4,
+	ButtonUpper5,
+	ButtonUpper6,
+	ButtonUpper7,
+	ButtonUpper8,
 
 	// Lower display buttons
-	byte(ButtonLower1),
-	byte(ButtonLower2),
-	byte(ButtonLower3),
-	byte(ButtonLower4),
-	byte(ButtonLower5),
-	byte(ButtonLower6),
-	byte(ButtonLower7),
-	byte(ButtonLower8),
+	ButtonLower1,
+	ButtonLower2,
+	ButtonLower3,
+	ButtonLower4,
+	ButtonLower5,
+	ButtonLower6,
+	ButtonLower7,
+	ButtonLower8,
 
 	// Master
-	byte(ButtonMaster),
+	ButtonMaster,
 
 	// Time division
-	byte(ButtonDiv1_4),
-	byte(ButtonDiv1_4t),
-	byte(ButtonDiv1_8),
-	byte(ButtonDiv1_8t),
-	byte(ButtonDiv1_16),
-	byte(ButtonDiv1_16t),
-	byte(ButtonDiv1_32),
-	byte(ButtonDiv1_32t),
+	ButtonScene1,
+	ButtonScene2,
+	ButtonScene3,
+	ButtonScene4,
+	ButtonScene5,
+	ButtonScene6,
+	ButtonScene7,
+	ButtonScene8,
 }
 
 // encoderFromTouchNote maps a touch note to an EncoderID.

@@ -120,10 +120,10 @@ func init() {
 
 	// ── Scene/repeat buttons (right col, rows 16-40) ──
 	sceneIDs := [8]push3.ButtonID{
-		push3.ButtonDiv1_32t, push3.ButtonDiv1_32,
-		push3.ButtonDiv1_16t, push3.ButtonDiv1_16,
-		push3.ButtonDiv1_8t, push3.ButtonDiv1_8,
-		push3.ButtonDiv1_4t, push3.ButtonDiv1_4,
+		push3.ButtonScene1, push3.ButtonScene2,
+		push3.ButtonScene3, push3.ButtonScene4,
+		push3.ButtonScene5, push3.ButtonScene6,
+		push3.ButtonScene7, push3.ButtonScene8,
 	}
 	sceneRows := [8]int{16, 19, 22, 25, 28, 31, 34, 37}
 	for i, id := range sceneIDs {
