@@ -74,6 +74,24 @@ const (
 	SysExMetersDump           // Meter levels (cmd 0x10-0x17)
 )
 
+// String returns a human-readable name for the SysEx kind.
+func (k SysExKind) String() string {
+	switch k {
+	case SysExKeepalive:
+		return "Keepalive"
+	case SysExLCD:
+		return "LCD"
+	case SysExSerialReq:
+		return "SerialReq"
+	case SysExVPotRing:
+		return "VPotRing"
+	case SysExMetersDump:
+		return "MetersDump"
+	default:
+		return "Unknown"
+	}
+}
+
 // ClassifySysEx determines the kind of an MCU SysEx payload.
 func ClassifySysEx(payload []byte) SysExKind {
 	if !IsMCUSysEx(payload) {

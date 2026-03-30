@@ -17,6 +17,24 @@ const (
 	MsgChannelPressure             // Channel pressure → meter level
 )
 
+// String returns a human-readable name for the message kind.
+func (k MessageKind) String() string {
+	switch k {
+	case MsgButton:
+		return "Button"
+	case MsgFader:
+		return "Fader"
+	case MsgVPot:
+		return "VPot"
+	case MsgSysEx:
+		return "SysEx"
+	case MsgChannelPressure:
+		return "ChannelPressure"
+	default:
+		return "Unknown"
+	}
+}
+
 // Message is a parsed MCU MIDI message.
 type Message struct {
 	Kind MessageKind

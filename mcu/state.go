@@ -156,7 +156,7 @@ func (s *State) handleButton(msg Message) string {
 		s.ModAlt = pressed
 
 	// Flip LED
-	case byte(note) == byte(MCUFlip):
+	case note == MCUFlip:
 		s.Flip = pressed
 		return fmt.Sprintf("flip=%v", pressed)
 
