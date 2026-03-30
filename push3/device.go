@@ -219,7 +219,7 @@ func (p *Device) handleMIDI(data []byte) {
 		}
 
 		// Swing/Tempo encoder click (CC 15 sends val=127 press, val=0 release).
-		if cc == byte(ButtonSwingTempoPress) {
+		if cc == uint8(ButtonSwingTempoPress) {
 			if p.OnButton != nil {
 				p.OnButton(ButtonSwingTempoPress, value > 0)
 			}
@@ -239,7 +239,7 @@ func (p *Device) handleMIDI(data []byte) {
 			if p.OnButton != nil {
 				pressed := value > 0
 				// Volume press (CC 111) is inverted: val=0 press, val=127 release.
-				if cc == byte(ButtonVolumePress) {
+				if cc == uint8(ButtonVolumePress) {
 					pressed = value == 0
 				}
 				p.OnButton(ButtonID(cc), pressed)
@@ -254,10 +254,14 @@ func (p *Device) Send(data []byte) error {
 	return p.output.Send(data)
 }
 
+// sysExPrefix is the Push 3 SysEx manufacturer prefix.
+var sysExPrefix = []byte{0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01}
+
 // SendSysEx sends a Push 3 SysEx message.
-// prefix is automatically added; data is the payload after the prefix.
+// The prefix is automatically added; data is the payload after the prefix.
 func (p *Device) SendSysEx(data []byte) error {
-	msg := []byte{0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01}
+	msg := make([]byte, 0, len(sysExPrefix)+len(data)+1)
+	msg = append(msg, sysExPrefix...)
 	msg = append(msg, data...)
 	msg = append(msg, 0xF7)
 	return p.output.Send(msg)

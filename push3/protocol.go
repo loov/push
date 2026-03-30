@@ -47,6 +47,36 @@ const (
 	EncoderJog        // Jog wheel on the right
 )
 
+// String returns a human-readable name for the encoder.
+func (e EncoderID) String() string {
+	switch e {
+	case EncoderTrack1:
+		return "Track 1"
+	case EncoderTrack2:
+		return "Track 2"
+	case EncoderTrack3:
+		return "Track 3"
+	case EncoderTrack4:
+		return "Track 4"
+	case EncoderTrack5:
+		return "Track 5"
+	case EncoderTrack6:
+		return "Track 6"
+	case EncoderTrack7:
+		return "Track 7"
+	case EncoderTrack8:
+		return "Track 8"
+	case EncoderVolume:
+		return "Volume"
+	case EncoderSwingTempo:
+		return "Swing/Tempo"
+	case EncoderJog:
+		return "Jog Wheel"
+	default:
+		return fmt.Sprintf("Encoder(%d)", e)
+	}
+}
+
 // EncoderCC returns the MIDI CC number for this encoder's rotation.
 func (e EncoderID) EncoderCC() uint8 {
 	switch {
@@ -421,6 +451,20 @@ const (
 	AnimBlink4      Animation = 14 // Continuous blink, 1/4 note
 	AnimBlinkHalf   Animation = 15 // Continuous blink, 1/2 note
 )
+
+// String returns a human-readable name for the animation.
+func (a Animation) String() string {
+	names := [16]string{
+		"Static",
+		"OneShot 1/24", "OneShot 1/16", "OneShot 1/8", "OneShot 1/4", "OneShot 1/2",
+		"Pulse 1/24", "Pulse 1/16", "Pulse 1/8", "Pulse 1/4", "Pulse 1/2",
+		"Blink 1/24", "Blink 1/16", "Blink 1/8", "Blink 1/4", "Blink 1/2",
+	}
+	if int(a) < len(names) {
+		return names[a]
+	}
+	return fmt.Sprintf("Animation(%d)", a)
+}
 
 // TouchStripConfig holds touch strip configuration flags.
 type TouchStripConfig struct {
