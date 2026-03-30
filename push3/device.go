@@ -14,18 +14,10 @@ import (
 // mpeCCSlide is the CC number for MPE "Slide" (vertical finger position).
 const mpeCCSlide = 74
 
-// Device represents a connected Push 3 device.
-type Device struct {
-	input  *midi.InputPort
-	output *midi.OutputPort
-
-	// MPE channel → pad position tracking.
-	// Each pad press gets a unique MIDI channel; we track it so
-	// aftertouch and slide events can be routed to the correct pad.
-	activePads [16]PadPosition // indexed by MIDI channel
-	padActive  [16]bool        // whether channel has an active pad
-
-	// Event callbacks. Set these before calling Connect.
+// Handler holds event callbacks for Push 3 input events.
+// Callbacks are invoked on a CoreMIDI thread, not the main goroutine.
+// They must be safe for concurrent use and should return quickly.
+type Handler struct {
 	OnButton          func(id ButtonID, pressed bool)
 	OnPad             func(pos PadPosition, velocity uint8, pressed bool)
 	OnPadPressure     func(pos PadPosition, pressure uint8) // Aftertouch (channel pressure per MPE channel)
@@ -39,6 +31,20 @@ type Device struct {
 	OnRawMIDI         func(data []byte)
 }
 
+// Device represents a connected Push 3 device.
+type Device struct {
+	input  *midi.InputPort
+	output *midi.OutputPort
+
+	// MPE channel → pad position tracking.
+	// Each pad press gets a unique MIDI channel; we track it so
+	// aftertouch and slide events can be routed to the correct pad.
+	activePads [16]PadPosition // indexed by MIDI channel
+	padActive  [16]bool        // whether channel has an active pad
+
+	handler Handler
+}
+
 // Push 3 MIDI port name patterns.
 const (
 	SourceName = "Ableton Push 3 Live Port"
@@ -46,7 +52,8 @@ const (
 )
 
 // Connect finds the Push 3 MIDI ports and starts listening for events.
-func Connect(client *midi.Client, sourceName, destName string) (*Device, error) {
+// The handler callbacks are copied and must not be modified after Connect returns.
+func Connect(client *midi.Client, sourceName, destName string, handler Handler) (*Device, error) {
 	source, err := midi.FindSource(sourceName)
 	if err != nil {
 		return nil, fmt.Errorf("push: finding source: %w", err)
@@ -61,7 +68,7 @@ func Connect(client *midi.Client, sourceName, destName string) (*Device, error) 
 		return nil, fmt.Errorf("push: opening output: %w", err)
 	}
 
-	p := &Device{output: output}
+	p := &Device{output: output, handler: handler}
 
 	input, err := client.OpenInput("push3-in", source, p.handleMIDI)
 	if err != nil {
@@ -73,8 +80,8 @@ func Connect(client *midi.Client, sourceName, destName string) (*Device, error) 
 }
 
 func (p *Device) handleMIDI(data []byte) {
-	if p.OnRawMIDI != nil {
-		p.OnRawMIDI(data)
+	if p.handler.OnRawMIDI != nil {
+		p.handler.OnRawMIDI(data)
 	}
 	if len(data) < 2 {
 		return
@@ -98,32 +105,32 @@ func (p *Device) handleMIDI(data []byte) {
 				p.activePads[ch] = pos
 				p.padActive[ch] = true
 			}
-			if p.OnPad != nil {
-				p.OnPad(pos, velocity, pressed)
+			if p.handler.OnPad != nil {
+				p.handler.OnPad(pos, velocity, pressed)
 			}
 			return
 		}
 
 		// Touch strip touch.
 		if note == TouchTouchStrip {
-			if p.OnTouchStripTouch != nil {
-				p.OnTouchStripTouch(pressed)
+			if p.handler.OnTouchStripTouch != nil {
+				p.handler.OnTouchStripTouch(pressed)
 			}
 			return
 		}
 
 		// D-pad center touch (Note 13).
 		if note == TouchDPadCenter {
-			if p.OnDPadCenterTouch != nil {
-				p.OnDPadCenterTouch(pressed)
+			if p.handler.OnDPadCenterTouch != nil {
+				p.handler.OnDPadCenterTouch(pressed)
 			}
 			return
 		}
 
 		// Check if it's an encoder touch note.
 		if enc, ok := encoderFromTouchNote(note); ok {
-			if p.OnEncoderTouch != nil {
-				p.OnEncoderTouch(enc, pressed)
+			if p.handler.OnEncoderTouch != nil {
+				p.handler.OnEncoderTouch(enc, pressed)
 			}
 			return
 		}
@@ -141,32 +148,32 @@ func (p *Device) handleMIDI(data []byte) {
 			// No Note On B is sent. We detect the slide by comparing the
 			// Note Off note against the active pad on this channel.
 			p.padActive[ch] = false
-			if p.OnPad != nil {
-				p.OnPad(pos, 0, false)
+			if p.handler.OnPad != nil {
+				p.handler.OnPad(pos, 0, false)
 			}
 			return
 		}
 
 		// Touch strip release.
 		if note == TouchTouchStrip {
-			if p.OnTouchStripTouch != nil {
-				p.OnTouchStripTouch(false)
+			if p.handler.OnTouchStripTouch != nil {
+				p.handler.OnTouchStripTouch(false)
 			}
 			return
 		}
 
 		// D-pad center touch release.
 		if note == TouchDPadCenter {
-			if p.OnDPadCenterTouch != nil {
-				p.OnDPadCenterTouch(false)
+			if p.handler.OnDPadCenterTouch != nil {
+				p.handler.OnDPadCenterTouch(false)
 			}
 			return
 		}
 
 		// Encoder touch release.
 		if enc, ok := encoderFromTouchNote(note); ok {
-			if p.OnEncoderTouch != nil {
-				p.OnEncoderTouch(enc, false)
+			if p.handler.OnEncoderTouch != nil {
+				p.handler.OnEncoderTouch(enc, false)
 			}
 			return
 		}
@@ -175,8 +182,8 @@ func (p *Device) handleMIDI(data []byte) {
 		if len(data) < 2 {
 			return
 		}
-		if p.padActive[ch] && p.OnPadPressure != nil {
-			p.OnPadPressure(p.activePads[ch], data[1])
+		if p.padActive[ch] && p.handler.OnPadPressure != nil {
+			p.handler.OnPadPressure(p.activePads[ch], data[1])
 		}
 		return
 
@@ -187,12 +194,12 @@ func (p *Device) handleMIDI(data []byte) {
 		value := uint16(data[1]) | uint16(data[2])<<7
 		if ch == 0 {
 			// Channel 0: touch strip.
-			if p.OnTouchStrip != nil {
-				p.OnTouchStrip(value)
+			if p.handler.OnTouchStrip != nil {
+				p.handler.OnTouchStrip(value)
 			}
-		} else if p.padActive[ch] && p.OnPadPitchBend != nil {
+		} else if p.padActive[ch] && p.handler.OnPadPitchBend != nil {
 			// MPE channels: per-pad pitch bend.
-			p.OnPadPitchBend(p.activePads[ch], value)
+			p.handler.OnPadPitchBend(p.activePads[ch], value)
 		}
 		return
 
@@ -205,8 +212,8 @@ func (p *Device) handleMIDI(data []byte) {
 
 		// MPE Slide (CC 74) — pad vertical finger position.
 		if cc == mpeCCSlide && p.padActive[ch] {
-			if p.OnPadSlide != nil {
-				p.OnPadSlide(p.activePads[ch], value)
+			if p.handler.OnPadSlide != nil {
+				p.handler.OnPadSlide(p.activePads[ch], value)
 			}
 			return
 		}
@@ -220,29 +227,29 @@ func (p *Device) handleMIDI(data []byte) {
 
 		// Swing/Tempo encoder click (CC 15 sends val=127 press, val=0 release).
 		if cc == uint8(ButtonSwingTempoPress) {
-			if p.OnButton != nil {
-				p.OnButton(ButtonSwingTempoPress, value > 0)
+			if p.handler.OnButton != nil {
+				p.handler.OnButton(ButtonSwingTempoPress, value > 0)
 			}
 			return
 		}
 
 		// Encoder rotation.
 		if enc, ok := EncoderFromCC(cc); ok {
-			if p.OnEncoder != nil {
-				p.OnEncoder(enc, DecodeRelative(value))
+			if p.handler.OnEncoder != nil {
+				p.handler.OnEncoder(enc, DecodeRelative(value))
 			}
 			return
 		}
 
 		// Button press/release (CC-based).
 		if isButtonCC(cc) {
-			if p.OnButton != nil {
+			if p.handler.OnButton != nil {
 				pressed := value > 0
 				// Volume press (CC 111) is inverted: val=0 press, val=127 release.
 				if cc == uint8(ButtonVolumePress) {
 					pressed = value == 0
 				}
-				p.OnButton(ButtonID(cc), pressed)
+				p.handler.OnButton(ButtonID(cc), pressed)
 			}
 			return
 		}

@@ -36,7 +36,17 @@ func run(ctx context.Context, sourceName, destName string) error {
 	}
 	defer client.Close()
 
-	p, err := push3.Connect(client, sourceName, destName)
+	state := &plasmaState{}
+
+	p, err := push3.Connect(client, sourceName, destName, push3.Handler{
+		OnPad: func(pos push3.PadPosition, velocity uint8, pressed bool) {
+			if !pressed {
+				return
+			}
+			t := float64(state.frame) * 0.08
+			state.addRipple(pos.Row, pos.Col, velocity, t)
+		},
+	})
 	if err != nil {
 		return fmt.Errorf("connecting to Push 3: %w", err)
 	}
@@ -47,16 +57,6 @@ func run(ctx context.Context, sourceName, destName string) error {
 	}
 
 	log.Println("Running plasma demo... Press pads for ripples. Ctrl+C to exit.")
-
-	state := &plasmaState{}
-
-	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
-		if !pressed {
-			return
-		}
-		t := float64(state.frame) * 0.08
-		state.addRipple(pos.Row, pos.Col, velocity, t)
-	}
 
 	ticker := time.NewTicker(33 * time.Millisecond) // ~30fps
 	defer ticker.Stop()

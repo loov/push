@@ -74,14 +74,14 @@ func TestHandleMIDI_Pads(t *testing.T) {
 	var gotPressed bool
 	called := false
 
-	p := &Device{
+	p := &Device{handler: Handler{
 		OnPad: func(pos PadPosition, velocity uint8, pressed bool) {
 			gotPos = pos
 			gotVel = velocity
 			gotPressed = pressed
 			called = true
 		},
-	}
+	}}
 
 	// Note On for pad at (0, 0) = note 92, velocity 100
 	p.handleMIDI([]byte{0x90, 92, 100})
@@ -114,13 +114,13 @@ func TestHandleMIDI_Buttons(t *testing.T) {
 	var gotPressed bool
 	called := false
 
-	p := &Device{
+	p := &Device{handler: Handler{
 		OnButton: func(id ButtonID, pressed bool) {
 			gotID = id
 			gotPressed = pressed
 			called = true
 		},
-	}
+	}}
 
 	// CC for Play button, value 127 = press
 	p.handleMIDI([]byte{0xB0, byte(ButtonPlay), 127})
@@ -150,13 +150,13 @@ func TestHandleMIDI_Encoders(t *testing.T) {
 	var gotDelta int
 	called := false
 
-	p := &Device{
+	p := &Device{handler: Handler{
 		OnEncoder: func(id EncoderID, delta int) {
 			gotID = id
 			gotDelta = delta
 			called = true
 		},
-	}
+	}}
 
 	// CC 71 (track 1 encoder), value 3 = clockwise 3
 	p.handleMIDI([]byte{0xB0, 71, 3})
@@ -186,13 +186,13 @@ func TestHandleMIDI_EncoderTouch(t *testing.T) {
 	var gotTouched bool
 	called := false
 
-	p := &Device{
+	p := &Device{handler: Handler{
 		OnEncoderTouch: func(id EncoderID, touched bool) {
 			gotID = id
 			gotTouched = touched
 			called = true
 		},
-	}
+	}}
 
 	// Note On for encoder touch, note 0 = Track 1
 	p.handleMIDI([]byte{0x90, 0, 127})

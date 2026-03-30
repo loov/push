@@ -39,14 +39,35 @@ func run(ctx context.Context, sourceName, destName string, colorDemo, animDemo b
 	}
 	defer client.Close()
 
-	p, err := push3.Connect(client, sourceName, destName)
-	if err != nil {
-		return fmt.Errorf("connecting to Push 3: %w", err)
+	handler := push3.Handler{
+		OnButton: func(id push3.ButtonID, pressed bool) {
+			action := "released"
+			if pressed {
+				action = "pressed"
+			}
+			log.Printf("[Button] %s %s", id, action)
+		},
+		OnPad: func(pos push3.PadPosition, velocity uint8, pressed bool) {
+			action := "released"
+			if pressed {
+				action = fmt.Sprintf("pressed vel=%d", velocity)
+			}
+			log.Printf("[Pad] (%d,%d) note=%d %s", pos.Row, pos.Col, pos.PadNote(), action)
+		},
+		OnEncoder: func(id push3.EncoderID, delta int) {
+			log.Printf("[Encoder] %s delta=%d", id, delta)
+		},
+		OnEncoderTouch: func(id push3.EncoderID, touched bool) {
+			action := "released"
+			if touched {
+				action = "touched"
+			}
+			log.Printf("[EncoderTouch] %s %s", id, action)
+		},
 	}
 
 	if raw {
-		p.OnRawMIDI = func(data []byte) {
-			// Filter out Active Sensing (0xFE) heartbeat.
+		handler.OnRawMIDI = func(data []byte) {
 			if len(data) == 1 && data[0] == 0xFE {
 				return
 			}
@@ -54,32 +75,9 @@ func run(ctx context.Context, sourceName, destName string, colorDemo, animDemo b
 		}
 	}
 
-	p.OnButton = func(id push3.ButtonID, pressed bool) {
-		action := "released"
-		if pressed {
-			action = "pressed"
-		}
-		log.Printf("[Button] CC=%d %s", id, action)
-	}
-
-	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
-		action := "released"
-		if pressed {
-			action = fmt.Sprintf("pressed vel=%d", velocity)
-		}
-		log.Printf("[Pad] (%d,%d) note=%d %s", pos.Row, pos.Col, pos.PadNote(), action)
-	}
-
-	p.OnEncoder = func(id push3.EncoderID, delta int) {
-		log.Printf("[Encoder] %d delta=%d", id, delta)
-	}
-
-	p.OnEncoderTouch = func(id push3.EncoderID, touched bool) {
-		action := "released"
-		if touched {
-			action = "touched"
-		}
-		log.Printf("[EncoderTouch] %d %s", id, action)
+	p, err := push3.Connect(client, sourceName, destName, handler)
+	if err != nil {
+		return fmt.Errorf("connecting to Push 3: %w", err)
 	}
 
 	log.Printf("Connected to Push 3: source=%q dest=%q", sourceName, destName)
@@ -132,7 +130,6 @@ func run(ctx context.Context, sourceName, destName string, colorDemo, animDemo b
 
 	if animDemo {
 		log.Println("Running animation demo...")
-		// Row 0: pulsing colors
 		for col := range uint8(8) {
 			pos := push3.PadPosition{Row: 0, Col: col}
 			if err := p.SetPadColorAnimated(pos, push3.PaletteRed+col, push3.AnimPulse4); err != nil {
@@ -140,7 +137,6 @@ func run(ctx context.Context, sourceName, destName string, colorDemo, animDemo b
 				break
 			}
 		}
-		// Row 1: blinking colors
 		for col := range uint8(8) {
 			pos := push3.PadPosition{Row: 1, Col: col}
 			if err := p.SetPadColorAnimated(pos, push3.PaletteBlue+col, push3.AnimBlink4); err != nil {
@@ -148,7 +144,6 @@ func run(ctx context.Context, sourceName, destName string, colorDemo, animDemo b
 				break
 			}
 		}
-		// Row 2: one-shot fade
 		for col := range uint8(8) {
 			pos := push3.PadPosition{Row: 2, Col: col}
 			if err := p.SetPadColorAnimated(pos, push3.PaletteGreen, push3.AnimOneShot4); err != nil {

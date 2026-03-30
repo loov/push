@@ -24,44 +24,52 @@ func main() {
 	}
 	defer client.Close()
 
-	p, err := push3.Connect(client, *source, *dest)
+	// prog is set after tea.NewProgram but before Connect starts delivering events.
+	var prog *tea.Program
+	send := func(msg tea.Msg) {
+		if prog != nil {
+			prog.Send(msg)
+		}
+	}
+
+	p, err := push3.Connect(client, *source, *dest, push3.Handler{
+		OnButton: func(id push3.ButtonID, pressed bool) {
+			send(buttonMsg{id: id, pressed: pressed})
+		},
+		OnPad: func(pos push3.PadPosition, velocity uint8, pressed bool) {
+			send(padMsg{pos: pos, velocity: velocity, pressed: pressed})
+		},
+		OnPadPressure: func(pos push3.PadPosition, pressure uint8) {
+			send(padPressureMsg{pos: pos, pressure: pressure})
+		},
+		OnPadSlide: func(pos push3.PadPosition, value uint8) {
+			send(padSlideMsg{pos: pos, value: value})
+		},
+		OnPadPitchBend: func(pos push3.PadPosition, value uint16) {
+			send(padPitchBendMsg{pos: pos, value: value})
+		},
+		OnEncoder: func(id push3.EncoderID, delta int) {
+			send(encoderMsg{id: id, delta: delta})
+		},
+		OnEncoderTouch: func(id push3.EncoderID, touched bool) {
+			send(encoderTouchMsg{id: id, touched: touched})
+		},
+		OnTouchStrip: func(value uint16) {
+			send(touchStripMsg{value: value})
+		},
+		OnTouchStripTouch: func(touched bool) {
+			send(touchStripTouchMsg{touched: touched})
+		},
+		OnDPadCenterTouch: func(touched bool) {
+			send(dpadCenterTouchMsg{touched: touched})
+		},
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	m := newModel(p)
-	prog := tea.NewProgram(m)
-
-	p.OnButton = func(id push3.ButtonID, pressed bool) {
-		prog.Send(buttonMsg{id: id, pressed: pressed})
-	}
-	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
-		prog.Send(padMsg{pos: pos, velocity: velocity, pressed: pressed})
-	}
-	p.OnPadPressure = func(pos push3.PadPosition, pressure uint8) {
-		prog.Send(padPressureMsg{pos: pos, pressure: pressure})
-	}
-	p.OnPadSlide = func(pos push3.PadPosition, value uint8) {
-		prog.Send(padSlideMsg{pos: pos, value: value})
-	}
-	p.OnPadPitchBend = func(pos push3.PadPosition, value uint16) {
-		prog.Send(padPitchBendMsg{pos: pos, value: value})
-	}
-	p.OnEncoder = func(id push3.EncoderID, delta int) {
-		prog.Send(encoderMsg{id: id, delta: delta})
-	}
-	p.OnEncoderTouch = func(id push3.EncoderID, touched bool) {
-		prog.Send(encoderTouchMsg{id: id, touched: touched})
-	}
-	p.OnTouchStrip = func(value uint16) {
-		prog.Send(touchStripMsg{value: value})
-	}
-	p.OnTouchStripTouch = func(touched bool) {
-		prog.Send(touchStripTouchMsg{touched: touched})
-	}
-	p.OnDPadCenterTouch = func(touched bool) {
-		prog.Send(dpadCenterTouchMsg{touched: touched})
-	}
+	prog = tea.NewProgram(m)
 
 	if _, err := prog.Run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
