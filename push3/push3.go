@@ -1,4 +1,4 @@
-package push
+package push3
 
 // Color represents an RGB color for Push 3 LEDs and display.
 type Color struct {

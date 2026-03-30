@@ -10,12 +10,12 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/loov/push3/midi"
-	"github.com/loov/push3/push"
+	"github.com/loov/push3/push3"
 )
 
 func main() {
-	source := flag.String("source", push.SourceName, "Push 3 MIDI source name")
-	dest := flag.String("dest", push.DestName, "Push 3 MIDI destination name")
+	source := flag.String("source", push3.SourceName, "Push 3 MIDI source name")
+	dest := flag.String("dest", push3.DestName, "Push 3 MIDI destination name")
 	flag.Parse()
 
 	client, err := midi.NewClient("push3-tui")
@@ -24,7 +24,7 @@ func main() {
 	}
 	defer client.Close()
 
-	p, err := push.Connect(client, *source, *dest)
+	p, err := push3.Connect(client, *source, *dest)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,25 +32,25 @@ func main() {
 	m := newModel(p)
 	prog := tea.NewProgram(m)
 
-	p.OnButton = func(id push.ButtonID, pressed bool) {
+	p.OnButton = func(id push3.ButtonID, pressed bool) {
 		prog.Send(buttonMsg{id: id, pressed: pressed})
 	}
-	p.OnPad = func(pos push.PadPosition, velocity uint8, pressed bool) {
+	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
 		prog.Send(padMsg{pos: pos, velocity: velocity, pressed: pressed})
 	}
-	p.OnPadPressure = func(pos push.PadPosition, pressure uint8) {
+	p.OnPadPressure = func(pos push3.PadPosition, pressure uint8) {
 		prog.Send(padPressureMsg{pos: pos, pressure: pressure})
 	}
-	p.OnPadSlide = func(pos push.PadPosition, value uint8) {
+	p.OnPadSlide = func(pos push3.PadPosition, value uint8) {
 		prog.Send(padSlideMsg{pos: pos, value: value})
 	}
-	p.OnPadPitchBend = func(pos push.PadPosition, value uint16) {
+	p.OnPadPitchBend = func(pos push3.PadPosition, value uint16) {
 		prog.Send(padPitchBendMsg{pos: pos, value: value})
 	}
-	p.OnEncoder = func(id push.EncoderID, delta int) {
+	p.OnEncoder = func(id push3.EncoderID, delta int) {
 		prog.Send(encoderMsg{id: id, delta: delta})
 	}
-	p.OnEncoderTouch = func(id push.EncoderID, touched bool) {
+	p.OnEncoderTouch = func(id push3.EncoderID, touched bool) {
 		prog.Send(encoderTouchMsg{id: id, touched: touched})
 	}
 	p.OnTouchStrip = func(value uint16) {
@@ -72,32 +72,32 @@ func main() {
 // Messages.
 type (
 	buttonMsg struct {
-		id      push.ButtonID
+		id      push3.ButtonID
 		pressed bool
 	}
 	padMsg struct {
-		pos      push.PadPosition
+		pos      push3.PadPosition
 		velocity uint8
 		pressed  bool
 	}
 	padPressureMsg struct {
-		pos      push.PadPosition
+		pos      push3.PadPosition
 		pressure uint8
 	}
 	padSlideMsg struct {
-		pos   push.PadPosition
+		pos   push3.PadPosition
 		value uint8
 	}
 	padPitchBendMsg struct {
-		pos   push.PadPosition
+		pos   push3.PadPosition
 		value uint16
 	}
 	encoderMsg struct {
-		id    push.EncoderID
+		id    push3.EncoderID
 		delta int
 	}
 	encoderTouchMsg struct {
-		id      push.EncoderID
+		id      push3.EncoderID
 		touched bool
 	}
 	touchStripMsg      struct{ value uint16 }
@@ -107,8 +107,8 @@ type (
 
 // Model.
 type model struct {
-	push     *push.Push3
-	buttons  map[push.ButtonID]bool
+	push     *push3.Device
+	buttons  map[push3.ButtonID]bool
 	pads     [8][8]padState
 	encoders [16]int
 	touched  [16]bool
@@ -131,8 +131,8 @@ type padState struct {
 	pitchBend uint16
 }
 
-func newModel(p *push.Push3) model {
-	return model{push: p, buttons: make(map[push.ButtonID]bool)}
+func newModel(p *push3.Device) model {
+	return model{push: p, buttons: make(map[push3.ButtonID]bool)}
 }
 
 func (m model) Init() tea.Cmd { return nil }

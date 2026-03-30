@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"github.com/loov/push3/midi"
-	"github.com/loov/push3/push"
+	"github.com/loov/push3/push3"
 )
 
 func main() {
-	source := flag.String("source", push.SourceName, "Push 3 MIDI source name")
-	dest := flag.String("dest", push.DestName, "Push 3 MIDI destination name")
+	source := flag.String("source", push3.SourceName, "Push 3 MIDI source name")
+	dest := flag.String("dest", push3.DestName, "Push 3 MIDI destination name")
 	flag.Parse()
 
 	if err := run(context.Background(), *source, *dest); err != nil {
@@ -36,7 +36,7 @@ func run(ctx context.Context, sourceName, destName string) error {
 	}
 	defer client.Close()
 
-	p, err := push.Connect(client, sourceName, destName)
+	p, err := push3.Connect(client, sourceName, destName)
 	if err != nil {
 		return fmt.Errorf("connecting to Push 3: %w", err)
 	}
@@ -50,7 +50,7 @@ func run(ctx context.Context, sourceName, destName string) error {
 
 	state := &plasmaState{}
 
-	p.OnPad = func(pos push.PadPosition, velocity uint8, pressed bool) {
+	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
 		if !pressed {
 			return
 		}
@@ -83,7 +83,7 @@ func run(ctx context.Context, sourceName, destName string) error {
 					continue
 				}
 				prev[row][col] = idx
-				pos := push.PadPosition{Row: row, Col: col}
+				pos := push3.PadPosition{Row: row, Col: col}
 				if err := p.SetPadColor(pos, idx); err != nil {
 					return err
 				}
@@ -179,11 +179,11 @@ func hsvToRGB(h, s, v float64) (uint8, uint8, uint8) {
 }
 
 // uploadRainbowPalette writes a smooth HSV rainbow into palette indices 1-127.
-func uploadRainbowPalette(p *push.Push3) error {
+func uploadRainbowPalette(p *push3.Device) error {
 	for i := range 127 {
 		h := float64(i) / 127 * 360
 		r, g, b := hsvToRGB(h, 1, 1)
-		if err := p.SetPaletteEntry(uint8(i+1), push.Color{R: r, G: g, B: b}); err != nil {
+		if err := p.SetPaletteEntry(uint8(i+1), push3.Color{R: r, G: g, B: b}); err != nil {
 			return fmt.Errorf("setting palette %d: %w", i+1, err)
 		}
 	}

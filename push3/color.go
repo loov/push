@@ -1,21 +1,21 @@
-package push
+package push3
 
 // SetPadColorAnimated sets a pad LED color with an animation mode.
 // The animation type determines the MIDI channel used.
-func (p *Push3) SetPadColorAnimated(pos PadPosition, paletteIndex uint8, anim Animation) error {
+func (p *Device) SetPadColorAnimated(pos PadPosition, paletteIndex uint8, anim Animation) error {
 	status := 0x90 | (uint8(anim) & 0x0F)
 	return p.output.Send([]byte{status, pos.PadNote(), paletteIndex})
 }
 
 // SetButtonColorAnimated sets a button LED color with an animation mode.
-func (p *Push3) SetButtonColorAnimated(button ButtonID, paletteIndex uint8, anim Animation) error {
+func (p *Device) SetButtonColorAnimated(button ButtonID, paletteIndex uint8, anim Animation) error {
 	status := 0xB0 | (uint8(anim) & 0x0F)
 	return p.output.Send([]byte{status, byte(button), paletteIndex})
 }
 
 // SetPaletteEntry modifies one of the 128 color palette entries via SysEx.
 // Call ReapplyPalette after modifying entries to apply changes.
-func (p *Push3) SetPaletteEntry(index uint8, c Color) error {
+func (p *Device) SetPaletteEntry(index uint8, c Color) error {
 	rL, rM := encodePaletteColor(c.R)
 	gL, gM := encodePaletteColor(c.G)
 	bL, bM := encodePaletteColor(c.B)
@@ -24,12 +24,12 @@ func (p *Push3) SetPaletteEntry(index uint8, c Color) error {
 }
 
 // ReapplyPalette tells the Push 3 to apply any modified palette entries.
-func (p *Push3) ReapplyPalette() error {
+func (p *Device) ReapplyPalette() error {
 	return p.SendSysEx([]byte{0x05})
 }
 
 // SetBrightness sets the global LED brightness (0-127).
-func (p *Push3) SetBrightness(level uint8) error {
+func (p *Device) SetBrightness(level uint8) error {
 	if level > 127 {
 		level = 127
 	}
@@ -37,13 +37,13 @@ func (p *Push3) SetBrightness(level uint8) error {
 }
 
 // SetTouchStripConfig configures the touch strip behavior via SysEx.
-func (p *Push3) SetTouchStripConfig(cfg TouchStripConfig) error {
+func (p *Device) SetTouchStripConfig(cfg TouchStripConfig) error {
 	return p.SendSysEx([]byte{0x17, encodeTouchStripConfig(cfg)})
 }
 
 // SetTouchStripLEDs sets the 31 touch strip LEDs via SysEx.
 // Each LED uses a 3-bit color index (0-7). LEDs are ordered bottom to top.
-func (p *Push3) SetTouchStripLEDs(leds [31]uint8) error {
+func (p *Device) SetTouchStripLEDs(leds [31]uint8) error {
 	var buf [17]byte
 	buf[0] = 0x19
 	for i := range 16 {
@@ -62,7 +62,7 @@ func (p *Push3) SetTouchStripLEDs(leds [31]uint8) error {
 
 // SendMIDIClock sends a MIDI Clock tick (0xF8).
 // LED animations synchronize to these ticks (24 per quarter note).
-func (p *Push3) SendMIDIClock() error {
+func (p *Device) SendMIDIClock() error {
 	return p.output.Send([]byte{0xF8})
 }
 

@@ -3,7 +3,7 @@
 // It connects to the Push 3's MIDI ports, dispatches incoming events
 // (buttons, pads, encoders) to callbacks, and provides methods to
 // set LED colors on buttons and pads.
-package push
+package push3
 
 import (
 	"fmt"
@@ -14,8 +14,8 @@ import (
 // mpeCCSlide is the CC number for MPE "Slide" (vertical finger position).
 const mpeCCSlide = 74
 
-// Push3 represents a connected Push 3 device.
-type Push3 struct {
+// Device represents a connected Push 3 device.
+type Device struct {
 	input  *midi.InputPort
 	output *midi.OutputPort
 
@@ -46,7 +46,7 @@ const (
 )
 
 // Connect finds the Push 3 MIDI ports and starts listening for events.
-func Connect(client *midi.Client, sourceName, destName string) (*Push3, error) {
+func Connect(client *midi.Client, sourceName, destName string) (*Device, error) {
 	source, err := midi.FindSource(sourceName)
 	if err != nil {
 		return nil, fmt.Errorf("push: finding source: %w", err)
@@ -61,7 +61,7 @@ func Connect(client *midi.Client, sourceName, destName string) (*Push3, error) {
 		return nil, fmt.Errorf("push: opening output: %w", err)
 	}
 
-	p := &Push3{output: output}
+	p := &Device{output: output}
 
 	input, err := client.OpenInput("push3-in", source, p.handleMIDI)
 	if err != nil {
@@ -72,7 +72,7 @@ func Connect(client *midi.Client, sourceName, destName string) (*Push3, error) {
 	return p, nil
 }
 
-func (p *Push3) handleMIDI(data []byte) {
+func (p *Device) handleMIDI(data []byte) {
 	if p.OnRawMIDI != nil {
 		p.OnRawMIDI(data)
 	}
@@ -250,13 +250,13 @@ func (p *Push3) handleMIDI(data []byte) {
 }
 
 // Send sends raw MIDI data to the Push 3.
-func (p *Push3) Send(data []byte) error {
+func (p *Device) Send(data []byte) error {
 	return p.output.Send(data)
 }
 
 // SendSysEx sends a Push 3 SysEx message.
 // prefix is automatically added; data is the payload after the prefix.
-func (p *Push3) SendSysEx(data []byte) error {
+func (p *Device) SendSysEx(data []byte) error {
 	msg := []byte{0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01}
 	msg = append(msg, data...)
 	msg = append(msg, 0xF7)
@@ -264,18 +264,18 @@ func (p *Push3) SendSysEx(data []byte) error {
 }
 
 // SetPadColor sets the LED color of a pad using a palette velocity index.
-func (p *Push3) SetPadColor(pos PadPosition, paletteIndex uint8) error {
+func (p *Device) SetPadColor(pos PadPosition, paletteIndex uint8) error {
 	note := pos.PadNote()
 	return p.output.Send([]byte{0x90, note, paletteIndex})
 }
 
 // SetButtonColor sets the LED color of a button using a palette velocity index.
-func (p *Push3) SetButtonColor(button ButtonID, paletteIndex uint8) error {
+func (p *Device) SetButtonColor(button ButtonID, paletteIndex uint8) error {
 	return p.output.Send([]byte{0xB0, byte(button), paletteIndex})
 }
 
 // SetAllPadsColor sets all 64 pads to the same palette color.
-func (p *Push3) SetAllPadsColor(paletteIndex uint8) error {
+func (p *Device) SetAllPadsColor(paletteIndex uint8) error {
 	for row := range uint8(8) {
 		for col := range uint8(8) {
 			pos := PadPosition{Row: row, Col: col}
@@ -288,12 +288,12 @@ func (p *Push3) SetAllPadsColor(paletteIndex uint8) error {
 }
 
 // ClearPads turns off all pad LEDs.
-func (p *Push3) ClearPads() error {
+func (p *Device) ClearPads() error {
 	return p.SetAllPadsColor(PaletteBlack)
 }
 
 // SetAllButtonsColor sets all button LEDs to the same palette color.
-func (p *Push3) SetAllButtonsColor(paletteIndex uint8) error {
+func (p *Device) SetAllButtonsColor(paletteIndex uint8) error {
 	for _, cc := range allButtonCCs {
 		if err := p.SetButtonColor(ButtonID(cc), paletteIndex); err != nil {
 			return fmt.Errorf("push: setting button CC %d: %w", cc, err)
@@ -303,6 +303,6 @@ func (p *Push3) SetAllButtonsColor(paletteIndex uint8) error {
 }
 
 // ClearButtons turns off all button LEDs.
-func (p *Push3) ClearButtons() error {
+func (p *Device) ClearButtons() error {
 	return p.SetAllButtonsColor(PaletteBlack)
 }

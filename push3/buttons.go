@@ -1,4 +1,4 @@
-package push
+package push3
 
 // buttonCCs is the set of all Push 3 CC numbers that correspond to buttons.
 var buttonCCs = map[uint8]bool{}

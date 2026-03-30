@@ -14,7 +14,7 @@ import (
 	"golang.org/x/term"
 
 	"github.com/loov/push3/midi"
-	"github.com/loov/push3/push"
+	"github.com/loov/push3/push3"
 )
 
 // item describes something to discover.
@@ -98,7 +98,7 @@ func writeln(format string, args ...any) {
 }
 
 func main() {
-	source := flag.String("source", push.SourceName, "Push 3 MIDI source name")
+	source := flag.String("source", push3.SourceName, "Push 3 MIDI source name")
 	flag.Parse()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)

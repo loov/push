@@ -11,7 +11,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/loov/push3/push"
+	"github.com/loov/push3/push3"
 )
 
 func main() {
@@ -27,14 +27,14 @@ func run(ctx context.Context, pattern string) error {
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
-	d, err := push.OpenDisplay()
+	d, err := push3.OpenDisplay()
 	if err != nil {
 		return fmt.Errorf("opening display: %w", err)
 	}
 	defer d.Close()
 
 	log.Printf("Display connected (%dx%d). Pattern: %s. Ctrl+C to exit.",
-		push.DisplayWidth, push.DisplayHeight, pattern)
+		push3.DisplayWidth, push3.DisplayHeight, pattern)
 
 	switch pattern {
 	case "solid":
@@ -54,7 +54,7 @@ func run(ctx context.Context, pattern string) error {
 }
 
 // sendStatic sends the same frame continuously at 60fps until cancelled.
-func sendStatic(ctx context.Context, d *push.Display) error {
+func sendStatic(ctx context.Context, d *push3.Display) error {
 	ticker := time.NewTicker(16 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -72,7 +72,7 @@ func sendStatic(ctx context.Context, d *push.Display) error {
 	}
 }
 
-func drawBars(d *push.Display) {
+func drawBars(d *push3.Display) {
 	type bar struct{ r, g, b uint8 }
 	colors := []bar{
 		{255, 0, 0},     // red
@@ -81,9 +81,9 @@ func drawBars(d *push.Display) {
 		{255, 255, 255}, // white
 		{0, 0, 0},       // black
 	}
-	barWidth := push.DisplayWidth / len(colors)
-	for y := range push.DisplayHeight {
-		for x := range push.DisplayWidth {
+	barWidth := push3.DisplayWidth / len(colors)
+	for y := range push3.DisplayHeight {
+		for x := range push3.DisplayWidth {
 			idx := x / barWidth
 			if idx >= len(colors) {
 				idx = len(colors) - 1
@@ -94,16 +94,16 @@ func drawBars(d *push.Display) {
 	}
 }
 
-func drawGradient(d *push.Display) {
-	for y := range push.DisplayHeight {
-		for x := range push.DisplayWidth {
-			v := uint8(x * 255 / (push.DisplayWidth - 1))
+func drawGradient(d *push3.Display) {
+	for y := range push3.DisplayHeight {
+		for x := range push3.DisplayWidth {
+			v := uint8(x * 255 / (push3.DisplayWidth - 1))
 			d.SetPixel(x, y, v, v, v)
 		}
 	}
 }
 
-func sendPlasma(ctx context.Context, d *push.Display) error {
+func sendPlasma(ctx context.Context, d *push3.Display) error {
 	ticker := time.NewTicker(16 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -118,10 +118,10 @@ func sendPlasma(ctx context.Context, d *push.Display) error {
 		}
 
 		t := float64(frame) * 0.03
-		for y := range push.DisplayHeight {
-			fy := float64(y) / float64(push.DisplayHeight)
-			for x := range push.DisplayWidth {
-				fx := float64(x) / float64(push.DisplayWidth)
+		for y := range push3.DisplayHeight {
+			fy := float64(y) / float64(push3.DisplayHeight)
+			for x := range push3.DisplayWidth {
+				fx := float64(x) / float64(push3.DisplayWidth)
 				v := math.Sin(fx*6 + t)
 				v += math.Sin(fy*8 + t*1.3)
 				v += math.Sin((fx+fy)*5 + t*0.7)

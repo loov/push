@@ -1,4 +1,4 @@
-package push
+package push3
 
 import (
 	"testing"
@@ -74,7 +74,7 @@ func TestHandleMIDI_Pads(t *testing.T) {
 	var gotPressed bool
 	called := false
 
-	p := &Push3{
+	p := &Device{
 		OnPad: func(pos PadPosition, velocity uint8, pressed bool) {
 			gotPos = pos
 			gotVel = velocity
@@ -114,7 +114,7 @@ func TestHandleMIDI_Buttons(t *testing.T) {
 	var gotPressed bool
 	called := false
 
-	p := &Push3{
+	p := &Device{
 		OnButton: func(id ButtonID, pressed bool) {
 			gotID = id
 			gotPressed = pressed
@@ -150,7 +150,7 @@ func TestHandleMIDI_Encoders(t *testing.T) {
 	var gotDelta int
 	called := false
 
-	p := &Push3{
+	p := &Device{
 		OnEncoder: func(id EncoderID, delta int) {
 			gotID = id
 			gotDelta = delta
@@ -186,7 +186,7 @@ func TestHandleMIDI_EncoderTouch(t *testing.T) {
 	var gotTouched bool
 	called := false
 
-	p := &Push3{
+	p := &Device{
 		OnEncoderTouch: func(id EncoderID, touched bool) {
 			gotID = id
 			gotTouched = touched
