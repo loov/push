@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/loov/logic-push3/usb"
+	"github.com/loov/push3/usb"
 )
 
 // Display constants.

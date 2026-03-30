@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/loov/logic-push3/push3"
+	"github.com/loov/push3/push3"
 )
 
 // State accumulates MCU state from incoming messages.

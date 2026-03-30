@@ -11,7 +11,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/loov/logic-push3/push"
+	"github.com/loov/push3/push"
 )
 
 func main() {

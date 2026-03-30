@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/loov/logic-push3/midi"
-	"github.com/loov/logic-push3/push"
+	"github.com/loov/push3/midi"
+	"github.com/loov/push3/push"
 )
 
 // item describes something to discover.

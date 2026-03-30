@@ -1,6 +1,6 @@
 package push
 
-import "github.com/loov/logic-push3/push3"
+import "github.com/loov/push3/push3"
 
 // Encoder touch note to EncoderID mapping.
 // Touch notes: 0-7 = Track 1-8, 8 = Volume, 10 = Tempo/Swing, 11 = Jog.

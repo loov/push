@@ -3,7 +3,7 @@ package mcu
 import (
 	"strings"
 
-	"github.com/loov/logic-push3/push3"
+	"github.com/loov/push3/push3"
 )
 
 // DetectMode infers the current MCU assign mode from LCD content.

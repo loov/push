@@ -1,6 +1,6 @@
 package mcu
 
-import "github.com/loov/logic-push3/push3"
+import "github.com/loov/push3/push3"
 
 // ParseLCD extracts the position and text from an MCU LCD SysEx payload.
 // The payload is the data between F0 and F7, validated as MCU SysEx.

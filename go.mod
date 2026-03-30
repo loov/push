@@ -1,4 +1,4 @@
-module github.com/loov/logic-push3
+module github.com/loov/push3
 
 go 1.26
 

@@ -8,8 +8,8 @@ package push
 import (
 	"fmt"
 
-	"github.com/loov/logic-push3/midi"
-	"github.com/loov/logic-push3/push3"
+	"github.com/loov/push3/midi"
+	"github.com/loov/push3/push3"
 )
 
 // mpeCCSlide is the CC number for MPE "Slide" (vertical finger position).

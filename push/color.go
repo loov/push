@@ -1,6 +1,6 @@
 package push
 
-import "github.com/loov/logic-push3/push3"
+import "github.com/loov/push3/push3"
 
 // SetPadColorAnimated sets a pad LED color with an animation mode.
 // The animation type determines the MIDI channel used.

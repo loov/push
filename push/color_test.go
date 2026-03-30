@@ -3,7 +3,7 @@ package push
 import (
 	"testing"
 
-	"github.com/loov/logic-push3/push3"
+	"github.com/loov/push3/push3"
 )
 
 func TestEncodePaletteColor(t *testing.T) {

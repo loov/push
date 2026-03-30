@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/loov/logic-push3/push3"
+	"github.com/loov/push3/push3"
 )
 
 func TestLayoutMatchesReference(t *testing.T) {

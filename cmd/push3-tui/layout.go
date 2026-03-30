@@ -7,7 +7,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 
-	"github.com/loov/logic-push3/push3"
+	"github.com/loov/push3/push3"
 )
 
 // A region that should be highlighted when a button is pressed.
