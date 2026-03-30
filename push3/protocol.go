@@ -138,10 +138,10 @@ const (
 	ButtonUser  ButtonID = 59
 
 	// Top-right row
-	ButtonDevice  ButtonID = 110
-	ButtonMix     ButtonID = 112
-	ButtonClip    ButtonID = 113
-	ButtonSession ButtonID = 34
+	ButtonDevice        ButtonID = 110
+	ButtonMix           ButtonID = 112
+	ButtonClip          ButtonID = 113
+	ButtonSessionScreen ButtonID = 34
 
 	// Display area
 	ButtonUndo ButtonID = 119
@@ -156,19 +156,19 @@ const (
 	ButtonSolo     ButtonID = 61
 
 	// Transport / left side
-	ButtonTapTempo  ButtonID = 3
-	ButtonMetronome ButtonID = 9
-	ButtonQuantize  ButtonID = 116
-	ButtonFixedLen  ButtonID = 90
-	ButtonAutomate  ButtonID = 89
-	ButtonNew       ButtonID = 92
-	ButtonCapture   ButtonID = 65
-	ButtonRecord    ButtonID = 86
-	ButtonPlay      ButtonID = 85
+	ButtonTapTempo    ButtonID = 3
+	ButtonMetronome   ButtonID = 9
+	ButtonQuantize    ButtonID = 116
+	ButtonFixedLength ButtonID = 90
+	ButtonAutomate    ButtonID = 89
+	ButtonNew         ButtonID = 92
+	ButtonCapture     ButtonID = 65
+	ButtonRecord      ButtonID = 86
+	ButtonPlay        ButtonID = 85
 
 	// Right side
 	ButtonNote       ButtonID = 50
-	ButtonSessionR   ButtonID = 51 // Session button on the right side
+	ButtonSessionPad ButtonID = 51 // Session button on the right side
 	ButtonScale      ButtonID = 58
 	ButtonLayout     ButtonID = 31
 	ButtonRepeat     ButtonID = 56
@@ -225,7 +225,7 @@ const (
 	ButtonLower7 ButtonID = 26
 	ButtonLower8 ButtonID = 27
 
-	ButtonMaster ButtonID = 28
+	ButtonMainTrack ButtonID = 28
 
 	// Scene buttons (right column, top to bottom)
 	ButtonScene1 ButtonID = 43 // labeled 1/32t
@@ -255,8 +255,8 @@ func (b ButtonID) String() string {
 		return "Mix"
 	case ButtonClip:
 		return "Clip"
-	case ButtonSession:
-		return "Session"
+	case ButtonSessionScreen:
+		return "Session Screen"
 	case ButtonUndo:
 		return "Undo"
 	case ButtonSave:
@@ -279,7 +279,7 @@ func (b ButtonID) String() string {
 		return "Metronome"
 	case ButtonQuantize:
 		return "Quantize"
-	case ButtonFixedLen:
+	case ButtonFixedLength:
 		return "Fixed Length"
 	case ButtonAutomate:
 		return "Automate"
@@ -293,8 +293,8 @@ func (b ButtonID) String() string {
 		return "Play"
 	case ButtonNote:
 		return "Note"
-	case ButtonSessionR:
-		return "Session (R)"
+	case ButtonSessionPad:
+		return "Session Pad"
 	case ButtonScale:
 		return "Scale"
 	case ButtonLayout:
@@ -375,8 +375,8 @@ func (b ButtonID) String() string {
 		return "Lower 7"
 	case ButtonLower8:
 		return "Lower 8"
-	case ButtonMaster:
-		return "Master"
+	case ButtonMainTrack:
+		return "Main Track"
 	case ButtonScene1:
 		return "Scene 1"
 	case ButtonScene2:
@@ -490,7 +490,7 @@ var AllButtons = []ButtonID{
 	ButtonDevice,
 	ButtonMix,
 	ButtonClip,
-	ButtonSession,
+	ButtonSessionScreen,
 
 	// Display area
 	ButtonUndo,
@@ -508,7 +508,7 @@ var AllButtons = []ButtonID{
 	ButtonTapTempo,
 	ButtonMetronome,
 	ButtonQuantize,
-	ButtonFixedLen,
+	ButtonFixedLength,
 	ButtonAutomate,
 	ButtonNew,
 	ButtonCapture,
@@ -517,7 +517,7 @@ var AllButtons = []ButtonID{
 
 	// Right side
 	ButtonNote,
-	ButtonSessionR,
+	ButtonSessionPad,
 	ButtonScale,
 	ButtonLayout,
 	ButtonRepeat,
@@ -576,7 +576,7 @@ var AllButtons = []ButtonID{
 	ButtonLower8,
 
 	// Master
-	ButtonMaster,
+	ButtonMainTrack,
 
 	// Time division
 	ButtonScene1,

@@ -61,7 +61,7 @@ func init() {
 	add(3, 5, 81, 5, push3.ButtonDevice)
 	add(3, 5, 87, 5, push3.ButtonMix)
 	add(3, 5, 93, 4, push3.ButtonClip)
-	add(3, 5, 99, 5, push3.ButtonSession)
+	add(3, 5, 99, 5, push3.ButtonSessionScreen)
 
 	// ── Display area buttons (rows 6-12) ──
 	add(6, 8, 20, 5, push3.ButtonUndo)
@@ -85,7 +85,7 @@ func init() {
 	}
 
 	// Master
-	add(13, 15, 81, 5, push3.ButtonMaster)
+	add(13, 15, 81, 5, push3.ButtonMainTrack)
 
 	// ── Volume encoder press (overlays Vol box, rows 7-11) ──
 	add(7, 11, 7, 7, push3.ButtonVolumePress)
@@ -106,7 +106,7 @@ func init() {
 	// Quantize (row 24, standalone label)
 	add(24, 24, 3, 12, push3.ButtonQuantize)
 	// Fixed Length (row 26)
-	add(26, 26, 3, 14, push3.ButtonFixedLen)
+	add(26, 26, 3, 14, push3.ButtonFixedLength)
 	// Automate (row 27)
 	add(27, 27, 3, 12, push3.ButtonAutomate)
 	// New (rows 29-31)
@@ -141,7 +141,7 @@ func init() {
 	// ── Right side button pairs ──
 	// Note/Session (rows 19-21)
 	add(19, 21, 90, 6, push3.ButtonNote)
-	add(19, 21, 97, 6, push3.ButtonSessionR)
+	add(19, 21, 97, 6, push3.ButtonSessionPad)
 	// Scale/Layout (rows 21-23)
 	add(21, 23, 90, 6, push3.ButtonScale)
 	add(21, 23, 97, 6, push3.ButtonLayout)
