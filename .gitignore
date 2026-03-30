@@ -14,6 +14,7 @@
 /push3-discover
 /push3-padlog
 /push3-plasma
+/push3-display
 
 # Go workspace
 go.work
