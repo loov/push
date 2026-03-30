@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/loov/push3/midi"
+	"github.com/loov/push/midi"
 )
 
 func main() {

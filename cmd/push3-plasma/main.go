@@ -12,8 +12,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/loov/push3/midi"
-	"github.com/loov/push3/push3"
+	"github.com/loov/push/midi"
+	"github.com/loov/push/push3"
 )
 
 func main() {

@@ -10,8 +10,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/loov/push3/mcu"
-	"github.com/loov/push3/midi"
+	"github.com/loov/push/mcu"
+	"github.com/loov/push/midi"
 )
 
 func main() {
