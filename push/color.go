@@ -1,23 +1,21 @@
 package push
 
-import "github.com/loov/push3/push3"
-
 // SetPadColorAnimated sets a pad LED color with an animation mode.
 // The animation type determines the MIDI channel used.
-func (p *Push3) SetPadColorAnimated(pos push3.PadPosition, paletteIndex uint8, anim push3.Animation) error {
+func (p *Push3) SetPadColorAnimated(pos PadPosition, paletteIndex uint8, anim Animation) error {
 	status := 0x90 | (uint8(anim) & 0x0F)
 	return p.output.Send([]byte{status, pos.PadNote(), paletteIndex})
 }
 
 // SetButtonColorAnimated sets a button LED color with an animation mode.
-func (p *Push3) SetButtonColorAnimated(button push3.ButtonID, paletteIndex uint8, anim push3.Animation) error {
+func (p *Push3) SetButtonColorAnimated(button ButtonID, paletteIndex uint8, anim Animation) error {
 	status := 0xB0 | (uint8(anim) & 0x0F)
 	return p.output.Send([]byte{status, byte(button), paletteIndex})
 }
 
 // SetPaletteEntry modifies one of the 128 color palette entries via SysEx.
 // Call ReapplyPalette after modifying entries to apply changes.
-func (p *Push3) SetPaletteEntry(index uint8, c push3.Color) error {
+func (p *Push3) SetPaletteEntry(index uint8, c Color) error {
 	rL, rM := encodePaletteColor(c.R)
 	gL, gM := encodePaletteColor(c.G)
 	bL, bM := encodePaletteColor(c.B)
@@ -39,7 +37,7 @@ func (p *Push3) SetBrightness(level uint8) error {
 }
 
 // SetTouchStripConfig configures the touch strip behavior via SysEx.
-func (p *Push3) SetTouchStripConfig(cfg push3.TouchStripConfig) error {
+func (p *Push3) SetTouchStripConfig(cfg TouchStripConfig) error {
 	return p.SendSysEx([]byte{0x17, encodeTouchStripConfig(cfg)})
 }
 
@@ -74,7 +72,7 @@ func encodePaletteColor(v uint8) (lsb, msb uint8) {
 }
 
 // encodeTouchStripConfig converts a TouchStripConfig to a 7-bit flags byte.
-func encodeTouchStripConfig(cfg push3.TouchStripConfig) uint8 {
+func encodeTouchStripConfig(cfg TouchStripConfig) uint8 {
 	var flags uint8
 	if cfg.HostControl {
 		flags |= 1 << 0

@@ -2,8 +2,6 @@ package mcu
 
 import (
 	"testing"
-
-	"github.com/loov/push3/push3"
 )
 
 func TestParseLCD(t *testing.T) {
@@ -82,7 +80,7 @@ func TestParseLCD(t *testing.T) {
 }
 
 func TestApplyLCD(t *testing.T) {
-	var lcd [2]push3.LCDRow
+	var lcd [2]LCDRow
 	for i := range lcd {
 		for j := range lcd[i] {
 			lcd[i][j] = ' '
@@ -109,7 +107,7 @@ func TestApplyLCD(t *testing.T) {
 }
 
 func TestLCDRowCell(t *testing.T) {
-	var row push3.LCDRow
+	var row LCDRow
 	copy(row[:], "Track1 Track2 Bass   Drums  Keys   Pad    Synth  Master ")
 
 	tests := []struct {

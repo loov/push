@@ -2,13 +2,11 @@ package mcu
 
 import (
 	"strings"
-
-	"github.com/loov/push3/push3"
 )
 
 // DetectMode infers the current MCU assign mode from LCD content.
 // It checks the first cell of the top LCD row for known mode keywords.
-func DetectMode(lcd [2]push3.LCDRow) push3.MCUAssignMode {
+func DetectMode(lcd [2]LCDRow) MCUAssignMode {
 	// Check the first cell (7 chars) of the top row for mode hints.
 	cell0 := strings.ToLower(strings.TrimSpace(lcd[0].Cell(0)))
 
@@ -26,36 +24,36 @@ func DetectMode(lcd [2]push3.LCDRow) push3.MCUAssignMode {
 		}
 	}
 
-	return push3.MCUAssignModeUnknown
+	return MCUAssignModeUnknown
 }
 
-var modeKeywords = map[string]push3.MCUAssignMode{
-	"volume": push3.MCUAssignModeTrack,
-	"trkfmt": push3.MCUAssignModeTrack,
-	"pan":    push3.MCUAssignModePan,
-	"surr":   push3.MCUAssignModePan,
-	"send":   push3.MCUAssignModeSend,
-	"plug":   push3.MCUAssignModePlugin,
-	"eq":     push3.MCUAssignModeEQ,
-	"dyn":    push3.MCUAssignModeDynamics,
+var modeKeywords = map[string]MCUAssignMode{
+	"volume": MCUAssignModeTrack,
+	"trkfmt": MCUAssignModeTrack,
+	"pan":    MCUAssignModePan,
+	"surr":   MCUAssignModePan,
+	"send":   MCUAssignModeSend,
+	"plug":   MCUAssignModePlugin,
+	"eq":     MCUAssignModeEQ,
+	"dyn":    MCUAssignModeDynamics,
 }
 
 // DetectModeFromAssign maps an MCU assign button note to a mode.
-func DetectModeFromAssign(note byte) push3.MCUAssignMode {
-	switch push3.MCUButton(note) {
-	case push3.MCUAssignTrack:
-		return push3.MCUAssignModeTrack
-	case push3.MCUAssignSend:
-		return push3.MCUAssignModeSend
-	case push3.MCUAssignPan:
-		return push3.MCUAssignModePan
-	case push3.MCUAssignPlugin:
-		return push3.MCUAssignModePlugin
-	case push3.MCUAssignEQ:
-		return push3.MCUAssignModeEQ
-	case push3.MCUAssignInstrument:
-		return push3.MCUAssignModeDynamics
+func DetectModeFromAssign(note byte) MCUAssignMode {
+	switch MCUButton(note) {
+	case MCUAssignTrack:
+		return MCUAssignModeTrack
+	case MCUAssignSend:
+		return MCUAssignModeSend
+	case MCUAssignPan:
+		return MCUAssignModePan
+	case MCUAssignPlugin:
+		return MCUAssignModePlugin
+	case MCUAssignEQ:
+		return MCUAssignModeEQ
+	case MCUAssignInstrument:
+		return MCUAssignModeDynamics
 	default:
-		return push3.MCUAssignModeUnknown
+		return MCUAssignModeUnknown
 	}
 }

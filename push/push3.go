@@ -1,5 +1,4 @@
-// Package push3 defines shared vocabulary types for the logic-push3 application.
-package push3
+package push
 
 // Color represents an RGB color for Push 3 LEDs and display.
 type Color struct {

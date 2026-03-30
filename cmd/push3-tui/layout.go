@@ -7,7 +7,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 
-	"github.com/loov/push3/push3"
+	"github.com/loov/push3/push"
 )
 
 // A region that should be highlighted when a button is pressed.
@@ -15,7 +15,7 @@ import (
 type region struct {
 	rowStart, rowEnd int // inclusive range of rows
 	col, width       int
-	id               push3.ButtonID
+	id               push.ButtonID
 }
 
 // All interactive button regions, positions from ascii.txt (0-indexed).
@@ -23,11 +23,11 @@ type region struct {
 var buttonRegions = []region{
 	// Top row (rows 3-5): left buttons — inner cols 2..6 (width 5) per cell
 	// Top row — center (display buttons 1-8) — inner cols 31..33 (width 3)
-	{3, 5, 2, 5, push3.ButtonUpper1}, {3, 5, 8, 5, push3.ButtonUpper2},
-	{3, 5, 14, 5, push3.ButtonUpper3}, {3, 5, 20, 5, push3.ButtonUpper4},
+	{3, 5, 2, 5, push.ButtonUpper1}, {3, 5, 8, 5, push.ButtonUpper2},
+	{3, 5, 14, 5, push.ButtonUpper3}, {3, 5, 20, 5, push.ButtonUpper4},
 
-	{3, 5, 31, 5, push3.ButtonUpper5}, {3, 5, 37, 5, push3.ButtonUpper6},
-	{3, 5, 43, 5, push3.ButtonUpper7}, {3, 5, 49, 5, push3.ButtonUpper8},
+	{3, 5, 31, 5, push.ButtonUpper5}, {3, 5, 37, 5, push.ButtonUpper6},
+	{3, 5, 43, 5, push.ButtonUpper7}, {3, 5, 49, 5, push.ButtonUpper8},
 
 	// Hmm wait, let me re-derive from the actual template positions.
 }
@@ -37,93 +37,93 @@ func init() {
 	buttonRegions = nil
 
 	// Helper: button spanning rows [r0, r1] inclusive, inner content cols [c, c+w).
-	add := func(r0, r1, c, w int, id push3.ButtonID) {
+	add := func(r0, r1, c, w int, id push.ButtonID) {
 		buttonRegions = append(buttonRegions, region{r0, r1, c, w, id})
 	}
 
 	// ── Top button row (rows 3-5) ──
 	// Left: Sets, Setup, Learn, User
-	add(3, 5, 2, 5, push3.ButtonSets)
-	add(3, 5, 8, 5, push3.ButtonSetup)
-	add(3, 5, 14, 5, push3.ButtonLearn)
-	add(3, 5, 20, 5, push3.ButtonUser)
+	add(3, 5, 2, 5, push.ButtonSets)
+	add(3, 5, 8, 5, push.ButtonSetup)
+	add(3, 5, 14, 5, push.ButtonLearn)
+	add(3, 5, 20, 5, push.ButtonUser)
 
 	// Center: display buttons 1-8
-	topIDs := [8]push3.ButtonID{
-		push3.ButtonUpper1, push3.ButtonUpper2, push3.ButtonUpper3, push3.ButtonUpper4,
-		push3.ButtonUpper5, push3.ButtonUpper6, push3.ButtonUpper7, push3.ButtonUpper8,
+	topIDs := [8]push.ButtonID{
+		push.ButtonUpper1, push.ButtonUpper2, push.ButtonUpper3, push.ButtonUpper4,
+		push.ButtonUpper5, push.ButtonUpper6, push.ButtonUpper7, push.ButtonUpper8,
 	}
 	for i, id := range topIDs {
 		add(3, 5, 30+i*6, 5, id)
 	}
 
 	// Right: Device, Mix, Clip, Session
-	add(3, 5, 81, 5, push3.ButtonDevice)
-	add(3, 5, 87, 5, push3.ButtonMix)
-	add(3, 5, 93, 4, push3.ButtonClip)
-	add(3, 5, 99, 5, push3.ButtonSession)
+	add(3, 5, 81, 5, push.ButtonDevice)
+	add(3, 5, 87, 5, push.ButtonMix)
+	add(3, 5, 93, 4, push.ButtonClip)
+	add(3, 5, 99, 5, push.ButtonSession)
 
 	// ── Display area buttons (rows 6-12) ──
-	add(6, 8, 20, 5, push3.ButtonUndo)
-	add(10, 12, 20, 5, push3.ButtonSave)
-	add(6, 8, 82, 5, push3.ButtonAdd)
-	add(10, 12, 81, 5, push3.ButtonSwap)
+	add(6, 8, 20, 5, push.ButtonUndo)
+	add(10, 12, 20, 5, push.ButtonSave)
+	add(6, 8, 82, 5, push.ButtonAdd)
+	add(10, 12, 81, 5, push.ButtonSwap)
 
 	// ── Bottom button row (rows 13-15) ──
-	add(13, 15, 2, 5, push3.ButtonLock)
-	add(13, 15, 8, 5, push3.ButtonStopClip)
-	add(13, 15, 14, 5, push3.ButtonMute)
-	add(13, 15, 20, 5, push3.ButtonSolo)
+	add(13, 15, 2, 5, push.ButtonLock)
+	add(13, 15, 8, 5, push.ButtonStopClip)
+	add(13, 15, 14, 5, push.ButtonMute)
+	add(13, 15, 20, 5, push.ButtonSolo)
 
 	// Center: display buttons 1-8
-	botIDs := [8]push3.ButtonID{
-		push3.ButtonLower1, push3.ButtonLower2, push3.ButtonLower3, push3.ButtonLower4,
-		push3.ButtonLower5, push3.ButtonLower6, push3.ButtonLower7, push3.ButtonLower8,
+	botIDs := [8]push.ButtonID{
+		push.ButtonLower1, push.ButtonLower2, push.ButtonLower3, push.ButtonLower4,
+		push.ButtonLower5, push.ButtonLower6, push.ButtonLower7, push.ButtonLower8,
 	}
 	for i, id := range botIDs {
 		add(13, 15, 30+i*6, 5, id)
 	}
 
 	// Master
-	add(13, 15, 81, 5, push3.ButtonMaster)
+	add(13, 15, 81, 5, push.ButtonMaster)
 
 	// ── Volume encoder press (overlays Vol box, rows 7-11) ──
-	add(7, 11, 7, 7, push3.ButtonVolumePress)
+	add(7, 11, 7, 7, push.ButtonVolumePress)
 
 	// ── Jog wheel actions (overlay Jog box, rows 6-12) ──
-	add(6, 12, 92, 8, push3.ButtonJogClick)
+	add(6, 12, 92, 8, push.ButtonJogClick)
 	// Jog push left/right also highlight the box.
-	add(6, 12, 92, 8, push3.ButtonJogPushLeft)
-	add(6, 12, 92, 8, push3.ButtonJogPushRight)
+	add(6, 12, 92, 8, push.ButtonJogPushLeft)
+	add(6, 12, 92, 8, push.ButtonJogPushRight)
 
 	// ── Left pad-area buttons ──
 	// Swing/Tempo press (CC 15, rows 16-18)
-	add(16, 18, 3, 12, push3.ButtonSwingTempoPress)
+	add(16, 18, 3, 12, push.ButtonSwingTempoPress)
 	// Tap/Tempo box (rows 19-22)
-	add(19, 22, 3, 12, push3.ButtonTapTempo)
+	add(19, 22, 3, 12, push.ButtonTapTempo)
 	// Metronome (row 23, standalone label)
-	add(23, 23, 3, 13, push3.ButtonMetronome)
+	add(23, 23, 3, 13, push.ButtonMetronome)
 	// Quantize (row 24, standalone label)
-	add(24, 24, 3, 12, push3.ButtonQuantize)
+	add(24, 24, 3, 12, push.ButtonQuantize)
 	// Fixed Length (row 26)
-	add(26, 26, 3, 14, push3.ButtonFixedLen)
+	add(26, 26, 3, 14, push.ButtonFixedLen)
 	// Automate (row 27)
-	add(27, 27, 3, 12, push3.ButtonAutomate)
+	add(27, 27, 3, 12, push.ButtonAutomate)
 	// New (rows 29-31)
-	add(29, 31, 3, 14, push3.ButtonNew)
+	add(29, 31, 3, 14, push.ButtonNew)
 	// Capture (rows 31-33)
-	add(31, 33, 3, 14, push3.ButtonCapture)
+	add(31, 33, 3, 14, push.ButtonCapture)
 	// Record (rows 34-37)
-	add(34, 37, 3, 14, push3.ButtonRecord)
+	add(34, 37, 3, 14, push.ButtonRecord)
 	// Play (rows 38-40)
-	add(38, 40, 3, 14, push3.ButtonPlay)
+	add(38, 40, 3, 14, push.ButtonPlay)
 
 	// ── Scene/repeat buttons (right col, rows 16-40) ──
-	sceneIDs := [8]push3.ButtonID{
-		push3.ButtonDiv1_32t, push3.ButtonDiv1_32,
-		push3.ButtonDiv1_16t, push3.ButtonDiv1_16,
-		push3.ButtonDiv1_8t, push3.ButtonDiv1_8,
-		push3.ButtonDiv1_4t, push3.ButtonDiv1_4,
+	sceneIDs := [8]push.ButtonID{
+		push.ButtonDiv1_32t, push.ButtonDiv1_32,
+		push.ButtonDiv1_16t, push.ButtonDiv1_16,
+		push.ButtonDiv1_8t, push.ButtonDiv1_8,
+		push.ButtonDiv1_4t, push.ButtonDiv1_4,
 	}
 	sceneRows := [8]int{16, 19, 22, 25, 28, 31, 34, 37}
 	for i, id := range sceneIDs {
@@ -132,38 +132,38 @@ func init() {
 
 	// ── D-pad (rows 13-17) ──
 	// Each arrow is a single char; highlight just that character.
-	add(14, 14, 96, 1, push3.ButtonUp)         // ^ at col 96
-	add(15, 15, 94, 1, push3.ButtonLeft)       // < at col 94
-	add(15, 15, 96, 1, push3.ButtonDPadCenter) // C at col 96
-	add(15, 15, 98, 1, push3.ButtonRight)      // > at col 98
-	add(16, 16, 96, 1, push3.ButtonDown)       // v at col 96
+	add(14, 14, 96, 1, push.ButtonUp)         // ^ at col 96
+	add(15, 15, 94, 1, push.ButtonLeft)       // < at col 94
+	add(15, 15, 96, 1, push.ButtonDPadCenter) // C at col 96
+	add(15, 15, 98, 1, push.ButtonRight)      // > at col 98
+	add(16, 16, 96, 1, push.ButtonDown)       // v at col 96
 
 	// ── Right side button pairs ──
 	// Note/Session (rows 19-21)
-	add(19, 21, 90, 6, push3.ButtonNote)
-	add(19, 21, 97, 6, push3.ButtonSessionR)
+	add(19, 21, 90, 6, push.ButtonNote)
+	add(19, 21, 97, 6, push.ButtonSessionR)
 	// Scale/Layout (rows 21-23)
-	add(21, 23, 90, 6, push3.ButtonScale)
-	add(21, 23, 97, 6, push3.ButtonLayout)
+	add(21, 23, 90, 6, push.ButtonScale)
+	add(21, 23, 97, 6, push.ButtonLayout)
 	// Repeat/Accent (rows 24-26)
-	add(24, 26, 90, 6, push3.ButtonRepeat)
-	add(24, 26, 97, 6, push3.ButtonAccent)
+	add(24, 26, 90, 6, push.ButtonRepeat)
+	add(24, 26, 97, 6, push.ButtonAccent)
 	// 2Loop/Dup (rows 26-28)
-	add(26, 28, 90, 6, push3.ButtonDoubleLoop)
-	add(26, 28, 97, 6, push3.ButtonDuplicate)
+	add(26, 28, 90, 6, push.ButtonDoubleLoop)
+	add(26, 28, 97, 6, push.ButtonDuplicate)
 	// Conv/Del (rows 28-30)
-	add(28, 30, 90, 6, push3.ButtonConvert)
-	add(28, 30, 97, 6, push3.ButtonDelete)
+	add(28, 30, 90, 6, push.ButtonConvert)
+	add(28, 30, 97, 6, push.ButtonDelete)
 
 	// ── Nav pad (rows 32-36) ──
-	add(33, 33, 96, 1, push3.ButtonOctaveUp)   // ^ at col 96
-	add(34, 34, 94, 1, push3.ButtonPageLeft)   // < at col 94
-	add(34, 34, 98, 1, push3.ButtonPageRight)  // > at col 98
-	add(35, 35, 96, 1, push3.ButtonOctaveDown) // v at col 96
+	add(33, 33, 96, 1, push.ButtonOctaveUp)   // ^ at col 96
+	add(34, 34, 94, 1, push.ButtonPageLeft)   // < at col 94
+	add(34, 34, 98, 1, push.ButtonPageRight)  // > at col 98
+	add(35, 35, 96, 1, push.ButtonOctaveDown) // v at col 96
 
 	// Shift/Select (rows 38-40)
-	add(38, 40, 90, 6, push3.ButtonShift)
-	add(38, 40, 97, 6, push3.ButtonSelect)
+	add(38, 40, 90, 6, push.ButtonShift)
+	add(38, 40, 97, 6, push.ButtonSelect)
 }
 
 // renderLayout renders the Push 3 TUI with highlighting for pressed controls.
@@ -172,36 +172,36 @@ func (m model) renderLayout() string {
 
 	// Stamp track encoder values (1-8).
 	for i := range 8 {
-		enc := push3.EncoderID(i + 1)
+		enc := push.EncoderID(i + 1)
 		val := fmt.Sprintf("%d", m.encoders[enc])
 		col := 31 + i*6
 		putStr(lines, 1, col, fmt.Sprintf(" %-2s", val))
 	}
 
 	// Stamp Volume encoder value into the Vol box (rows 8-10, cols 7-13).
-	if v := m.encoders[push3.EncoderVolume]; v != 0 {
+	if v := m.encoders[push.EncoderVolume]; v != 0 {
 		putStr(lines, 9, 7, fmt.Sprintf(" %5d ", v))
 	}
-	if m.buttons[push3.ButtonVolumePress] {
+	if m.buttons[push.ButtonVolumePress] {
 		putStr(lines, 10, 7, " Press ")
 	}
 
 	// Stamp Jog wheel value and action into the Jog box (rows 7-11, cols 92-99).
-	if v := m.encoders[push3.EncoderJog]; v != 0 {
+	if v := m.encoders[push.EncoderJog]; v != 0 {
 		putStr(lines, 8, 92, fmt.Sprintf(" %6d ", v))
 	}
 	// Show active jog action.
 	switch {
-	case m.buttons[push3.ButtonJogClick]:
+	case m.buttons[push.ButtonJogClick]:
 		putStr(lines, 10, 92, " Click  ")
-	case m.buttons[push3.ButtonJogPushLeft]:
+	case m.buttons[push.ButtonJogPushLeft]:
 		putStr(lines, 10, 92, " <Left  ")
-	case m.buttons[push3.ButtonJogPushRight]:
+	case m.buttons[push.ButtonJogPushRight]:
 		putStr(lines, 10, 92, " Right> ")
 	}
 
 	// Stamp Swing/Tempo value (single encoder, CC 14 rotation).
-	if v := m.encoders[push3.EncoderSwingTempo]; v != 0 {
+	if v := m.encoders[push.EncoderSwingTempo]; v != 0 {
 		putStr(lines, 17, 4, fmt.Sprintf("    %-5d ", v))
 	}
 
@@ -255,28 +255,28 @@ func (m model) renderLayout() string {
 
 	// Track encoder highlights (row 1).
 	for i := range 8 {
-		enc := push3.EncoderID(i + 1)
+		enc := push.EncoderID(i + 1)
 		if m.touched[enc] {
 			addHighlight(1, 31+i*6, 3, encTouchedStyle)
 		}
 	}
 
 	// Volume encoder highlight (inner box rows 8-10, cols 7-13).
-	if m.touched[push3.EncoderVolume] {
+	if m.touched[push.EncoderVolume] {
 		for r := 8; r <= 10; r++ {
 			addHighlight(r, 7, 7, encTouchedStyle)
 		}
 	}
 
 	// Jog wheel highlight (inner box rows 7-11, cols 92-99).
-	if m.touched[push3.EncoderJog] {
+	if m.touched[push.EncoderJog] {
 		for r := 7; r <= 11; r++ {
 			addHighlight(r, 92, 8, encTouchedStyle)
 		}
 	}
 
 	// Swing/Tempo encoder highlight (rows 17-18, cols 4-14).
-	if m.touched[push3.EncoderSwingTempo] {
+	if m.touched[push.EncoderSwingTempo] {
 		addHighlight(17, 4, 10, encTouchedStyle)
 		addHighlight(18, 4, 10, encTouchedStyle)
 	}
@@ -334,15 +334,15 @@ func (m model) renderLayout() string {
 	return out.String()
 }
 
-func activeStyle(id push3.ButtonID) lipgloss.Style {
+func activeStyle(id push.ButtonID) lipgloss.Style {
 	switch id {
-	case push3.ButtonPlay:
+	case push.ButtonPlay:
 		return btnGreen
-	case push3.ButtonRecord:
+	case push.ButtonRecord:
 		return btnRed
-	case push3.ButtonMute:
+	case push.ButtonMute:
 		return btnCyan
-	case push3.ButtonSolo:
+	case push.ButtonSolo:
 		return btnYellow
 	default:
 		return btnOn

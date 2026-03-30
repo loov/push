@@ -1,7 +1,5 @@
 package mcu
 
-import "github.com/loov/push3/push3"
-
 // ParseLCD extracts the position and text from an MCU LCD SysEx payload.
 // The payload is the data between F0 and F7, validated as MCU SysEx.
 // Returns the character position (0-111), the ASCII text, and whether parsing succeeded.
@@ -31,7 +29,7 @@ func ParseLCD(payload []byte) (position int, text string, ok bool) {
 }
 
 // ApplyLCD writes LCD text into an LCDRow pair at the given position.
-func ApplyLCD(lcd *[2]push3.LCDRow, position int, text string) {
+func ApplyLCD(lcd *[2]LCDRow, position int, text string) {
 	for i := 0; i < len(text); i++ {
 		pos := position + i
 		if pos < 0 {

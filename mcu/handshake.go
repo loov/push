@@ -1,7 +1,5 @@
 package mcu
 
-import "github.com/loov/push3/push3"
-
 // MCU SysEx commands.
 const (
 	cmdKeepalive    byte = 0x00
@@ -26,13 +24,13 @@ func IsMCUSysEx(payload []byte) bool {
 	if len(payload) < 4 {
 		return false
 	}
-	if payload[0] != push3.MCUSysExPrefix[0] ||
-		payload[1] != push3.MCUSysExPrefix[1] ||
-		payload[2] != push3.MCUSysExPrefix[2] {
+	if payload[0] != MCUSysExPrefix[0] ||
+		payload[1] != MCUSysExPrefix[1] ||
+		payload[2] != MCUSysExPrefix[2] {
 		return false
 	}
 	modelID := payload[3]
-	return modelID == push3.MCUModelIDLogic || modelID == push3.MCUModelIDGeneric
+	return modelID == MCUModelIDLogic || modelID == MCUModelIDGeneric
 }
 
 // SysExCommand returns the command byte from an MCU SysEx payload.
@@ -47,7 +45,7 @@ func SysExCommand(payload []byte) byte {
 // EncodeSerialReply creates the SysEx response to a serial number request (0x1A).
 func EncodeSerialReply(modelID byte, serial [7]byte) []byte {
 	msg := []byte{0xF0}
-	msg = append(msg, push3.MCUSysExPrefix[:]...)
+	msg = append(msg, MCUSysExPrefix[:]...)
 	msg = append(msg, modelID, cmdSerialReply)
 	msg = append(msg, serial[:]...)
 	msg = append(msg, 0xF7)
@@ -58,7 +56,7 @@ func EncodeSerialReply(modelID byte, serial [7]byte) []byte {
 func EncodeKeepaliveAck(modelID byte) []byte {
 	return []byte{
 		0xF0,
-		push3.MCUSysExPrefix[0], push3.MCUSysExPrefix[1], push3.MCUSysExPrefix[2],
+		MCUSysExPrefix[0], MCUSysExPrefix[1], MCUSysExPrefix[2],
 		modelID, cmdKeepaliveAck, 0x00,
 		0xF7,
 	}

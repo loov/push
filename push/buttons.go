@@ -1,7 +1,5 @@
 package push
 
-import "github.com/loov/push3/push3"
-
 // buttonCCs is the set of all Push 3 CC numbers that correspond to buttons.
 var buttonCCs = map[uint8]bool{}
 
@@ -19,110 +17,110 @@ func isButtonCC(cc uint8) bool {
 // All known Push 3 button CC numbers.
 var allButtonCCs = []uint8{
 	// Top-left row
-	byte(push3.ButtonSets),
-	byte(push3.ButtonSetup),
-	byte(push3.ButtonLearn),
-	byte(push3.ButtonUser),
+	byte(ButtonSets),
+	byte(ButtonSetup),
+	byte(ButtonLearn),
+	byte(ButtonUser),
 
 	// Top-right row
-	byte(push3.ButtonDevice),
-	byte(push3.ButtonMix),
-	byte(push3.ButtonClip),
-	byte(push3.ButtonSession),
+	byte(ButtonDevice),
+	byte(ButtonMix),
+	byte(ButtonClip),
+	byte(ButtonSession),
 
 	// Display area
-	byte(push3.ButtonUndo),
-	byte(push3.ButtonSave),
-	byte(push3.ButtonAdd),
-	byte(push3.ButtonSwap),
+	byte(ButtonUndo),
+	byte(ButtonSave),
+	byte(ButtonAdd),
+	byte(ButtonSwap),
 
 	// Bottom-left row
-	byte(push3.ButtonLock),
-	byte(push3.ButtonStopClip),
-	byte(push3.ButtonMute),
-	byte(push3.ButtonSolo),
+	byte(ButtonLock),
+	byte(ButtonStopClip),
+	byte(ButtonMute),
+	byte(ButtonSolo),
 
 	// Transport / left side
-	byte(push3.ButtonTapTempo),
-	byte(push3.ButtonMetronome),
-	byte(push3.ButtonQuantize),
-	byte(push3.ButtonFixedLen),
-	byte(push3.ButtonAutomate),
-	byte(push3.ButtonNew),
-	byte(push3.ButtonCapture),
-	byte(push3.ButtonRecord),
-	byte(push3.ButtonPlay),
+	byte(ButtonTapTempo),
+	byte(ButtonMetronome),
+	byte(ButtonQuantize),
+	byte(ButtonFixedLen),
+	byte(ButtonAutomate),
+	byte(ButtonNew),
+	byte(ButtonCapture),
+	byte(ButtonRecord),
+	byte(ButtonPlay),
 
 	// Right side
-	byte(push3.ButtonNote),
-	byte(push3.ButtonSessionR),
-	byte(push3.ButtonScale),
-	byte(push3.ButtonLayout),
-	byte(push3.ButtonRepeat),
-	byte(push3.ButtonAccent),
-	byte(push3.ButtonDoubleLoop),
-	byte(push3.ButtonDuplicate),
-	byte(push3.ButtonConvert),
-	byte(push3.ButtonDelete),
+	byte(ButtonNote),
+	byte(ButtonSessionR),
+	byte(ButtonScale),
+	byte(ButtonLayout),
+	byte(ButtonRepeat),
+	byte(ButtonAccent),
+	byte(ButtonDoubleLoop),
+	byte(ButtonDuplicate),
+	byte(ButtonConvert),
+	byte(ButtonDelete),
 
 	// D-pad
-	byte(push3.ButtonUp),
-	byte(push3.ButtonDown),
-	byte(push3.ButtonLeft),
-	byte(push3.ButtonRight),
-	byte(push3.ButtonDPadCenter),
+	byte(ButtonUp),
+	byte(ButtonDown),
+	byte(ButtonLeft),
+	byte(ButtonRight),
+	byte(ButtonDPadCenter),
 
 	// Navigation
-	byte(push3.ButtonOctaveUp),
-	byte(push3.ButtonOctaveDown),
-	byte(push3.ButtonPageLeft),
-	byte(push3.ButtonPageRight),
+	byte(ButtonOctaveUp),
+	byte(ButtonOctaveDown),
+	byte(ButtonPageLeft),
+	byte(ButtonPageRight),
 
 	// Bottom-right
-	byte(push3.ButtonShift),
-	byte(push3.ButtonSelect),
+	byte(ButtonShift),
+	byte(ButtonSelect),
 
 	// Encoder presses
-	byte(push3.ButtonVolumePress),
+	byte(ButtonVolumePress),
 	// Note: ButtonSwingTempoPress (CC 15) is NOT listed here because CC 15
 	// is handled as EncoderSwingTempo rotation first. The click is detected
 	// by value 127 on CC 15.
 
 	// Jog wheel
-	byte(push3.ButtonJogClick),
-	byte(push3.ButtonJogPushLeft),
-	byte(push3.ButtonJogPushRight),
+	byte(ButtonJogClick),
+	byte(ButtonJogPushLeft),
+	byte(ButtonJogPushRight),
 
 	// Upper display buttons
-	byte(push3.ButtonUpper1),
-	byte(push3.ButtonUpper2),
-	byte(push3.ButtonUpper3),
-	byte(push3.ButtonUpper4),
-	byte(push3.ButtonUpper5),
-	byte(push3.ButtonUpper6),
-	byte(push3.ButtonUpper7),
-	byte(push3.ButtonUpper8),
+	byte(ButtonUpper1),
+	byte(ButtonUpper2),
+	byte(ButtonUpper3),
+	byte(ButtonUpper4),
+	byte(ButtonUpper5),
+	byte(ButtonUpper6),
+	byte(ButtonUpper7),
+	byte(ButtonUpper8),
 
 	// Lower display buttons
-	byte(push3.ButtonLower1),
-	byte(push3.ButtonLower2),
-	byte(push3.ButtonLower3),
-	byte(push3.ButtonLower4),
-	byte(push3.ButtonLower5),
-	byte(push3.ButtonLower6),
-	byte(push3.ButtonLower7),
-	byte(push3.ButtonLower8),
+	byte(ButtonLower1),
+	byte(ButtonLower2),
+	byte(ButtonLower3),
+	byte(ButtonLower4),
+	byte(ButtonLower5),
+	byte(ButtonLower6),
+	byte(ButtonLower7),
+	byte(ButtonLower8),
 
 	// Master
-	byte(push3.ButtonMaster),
+	byte(ButtonMaster),
 
 	// Time division
-	byte(push3.ButtonDiv1_4),
-	byte(push3.ButtonDiv1_4t),
-	byte(push3.ButtonDiv1_8),
-	byte(push3.ButtonDiv1_8t),
-	byte(push3.ButtonDiv1_16),
-	byte(push3.ButtonDiv1_16t),
-	byte(push3.ButtonDiv1_32),
-	byte(push3.ButtonDiv1_32t),
+	byte(ButtonDiv1_4),
+	byte(ButtonDiv1_4t),
+	byte(ButtonDiv1_8),
+	byte(ButtonDiv1_8t),
+	byte(ButtonDiv1_16),
+	byte(ButtonDiv1_16t),
+	byte(ButtonDiv1_32),
+	byte(ButtonDiv1_32t),
 }

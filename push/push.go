@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/loov/push3/midi"
-	"github.com/loov/push3/push3"
 )
 
 // mpeCCSlide is the CC number for MPE "Slide" (vertical finger position).
@@ -23,17 +22,17 @@ type Push3 struct {
 	// MPE channel → pad position tracking.
 	// Each pad press gets a unique MIDI channel; we track it so
 	// aftertouch and slide events can be routed to the correct pad.
-	activePads [16]push3.PadPosition // indexed by MIDI channel
-	padActive  [16]bool              // whether channel has an active pad
+	activePads [16]PadPosition // indexed by MIDI channel
+	padActive  [16]bool        // whether channel has an active pad
 
 	// Event callbacks. Set these before calling Connect.
-	OnButton          func(id push3.ButtonID, pressed bool)
-	OnPad             func(pos push3.PadPosition, velocity uint8, pressed bool)
-	OnPadPressure     func(pos push3.PadPosition, pressure uint8) // Aftertouch (channel pressure per MPE channel)
-	OnPadSlide        func(pos push3.PadPosition, value uint8)    // CC 74 — vertical finger position
-	OnPadPitchBend    func(pos push3.PadPosition, value uint16)   // MPE pitch bend (0-16383, center 8192)
-	OnEncoder         func(id push3.EncoderID, delta int)
-	OnEncoderTouch    func(id push3.EncoderID, touched bool)
+	OnButton          func(id ButtonID, pressed bool)
+	OnPad             func(pos PadPosition, velocity uint8, pressed bool)
+	OnPadPressure     func(pos PadPosition, pressure uint8) // Aftertouch (channel pressure per MPE channel)
+	OnPadSlide        func(pos PadPosition, value uint8)    // CC 74 — vertical finger position
+	OnPadPitchBend    func(pos PadPosition, value uint16)   // MPE pitch bend (0-16383, center 8192)
+	OnEncoder         func(id EncoderID, delta int)
+	OnEncoderTouch    func(id EncoderID, touched bool)
 	OnTouchStrip      func(value uint16) // Position 0-16383
 	OnTouchStripTouch func(touched bool) // Finger on/off
 	OnDPadCenterTouch func(touched bool) // D-pad center touch
@@ -94,7 +93,7 @@ func (p *Push3) handleMIDI(data []byte) {
 		pressed := velocity > 0
 
 		// Check if it's a pad note (36-99). Pads use MPE channels.
-		if pos, ok := push3.PadPositionFromNote(note); ok {
+		if pos, ok := PadPositionFromNote(note); ok {
 			if pressed {
 				p.activePads[ch] = pos
 				p.padActive[ch] = true
@@ -106,7 +105,7 @@ func (p *Push3) handleMIDI(data []byte) {
 		}
 
 		// Touch strip touch.
-		if note == push3.TouchTouchStrip {
+		if note == TouchTouchStrip {
 			if p.OnTouchStripTouch != nil {
 				p.OnTouchStripTouch(pressed)
 			}
@@ -114,7 +113,7 @@ func (p *Push3) handleMIDI(data []byte) {
 		}
 
 		// D-pad center touch (Note 13).
-		if note == push3.TouchDPadCenter {
+		if note == TouchDPadCenter {
 			if p.OnDPadCenterTouch != nil {
 				p.OnDPadCenterTouch(pressed)
 			}
@@ -136,7 +135,7 @@ func (p *Push3) handleMIDI(data []byte) {
 		note := data[1]
 
 		// Pad release.
-		if pos, ok := push3.PadPositionFromNote(note); ok {
+		if pos, ok := PadPositionFromNote(note); ok {
 			// During a slide, Push 3 sends:
 			//   Note On A → Note Off A → (CC/pressure data) → Note Off B
 			// No Note On B is sent. We detect the slide by comparing the
@@ -149,7 +148,7 @@ func (p *Push3) handleMIDI(data []byte) {
 		}
 
 		// Touch strip release.
-		if note == push3.TouchTouchStrip {
+		if note == TouchTouchStrip {
 			if p.OnTouchStripTouch != nil {
 				p.OnTouchStripTouch(false)
 			}
@@ -157,7 +156,7 @@ func (p *Push3) handleMIDI(data []byte) {
 		}
 
 		// D-pad center touch release.
-		if note == push3.TouchDPadCenter {
+		if note == TouchDPadCenter {
 			if p.OnDPadCenterTouch != nil {
 				p.OnDPadCenterTouch(false)
 			}
@@ -220,17 +219,17 @@ func (p *Push3) handleMIDI(data []byte) {
 		}
 
 		// Swing/Tempo encoder click (CC 15 sends val=127 press, val=0 release).
-		if cc == byte(push3.ButtonSwingTempoPress) {
+		if cc == byte(ButtonSwingTempoPress) {
 			if p.OnButton != nil {
-				p.OnButton(push3.ButtonSwingTempoPress, value > 0)
+				p.OnButton(ButtonSwingTempoPress, value > 0)
 			}
 			return
 		}
 
 		// Encoder rotation.
-		if enc, ok := push3.EncoderFromCC(cc); ok {
+		if enc, ok := EncoderFromCC(cc); ok {
 			if p.OnEncoder != nil {
-				p.OnEncoder(enc, push3.DecodeRelative(value))
+				p.OnEncoder(enc, DecodeRelative(value))
 			}
 			return
 		}
@@ -240,10 +239,10 @@ func (p *Push3) handleMIDI(data []byte) {
 			if p.OnButton != nil {
 				pressed := value > 0
 				// Volume press (CC 111) is inverted: val=0 press, val=127 release.
-				if cc == byte(push3.ButtonVolumePress) {
+				if cc == byte(ButtonVolumePress) {
 					pressed = value == 0
 				}
-				p.OnButton(push3.ButtonID(cc), pressed)
+				p.OnButton(ButtonID(cc), pressed)
 			}
 			return
 		}
@@ -265,13 +264,13 @@ func (p *Push3) SendSysEx(data []byte) error {
 }
 
 // SetPadColor sets the LED color of a pad using a palette velocity index.
-func (p *Push3) SetPadColor(pos push3.PadPosition, paletteIndex uint8) error {
+func (p *Push3) SetPadColor(pos PadPosition, paletteIndex uint8) error {
 	note := pos.PadNote()
 	return p.output.Send([]byte{0x90, note, paletteIndex})
 }
 
 // SetButtonColor sets the LED color of a button using a palette velocity index.
-func (p *Push3) SetButtonColor(button push3.ButtonID, paletteIndex uint8) error {
+func (p *Push3) SetButtonColor(button ButtonID, paletteIndex uint8) error {
 	return p.output.Send([]byte{0xB0, byte(button), paletteIndex})
 }
 
@@ -279,7 +278,7 @@ func (p *Push3) SetButtonColor(button push3.ButtonID, paletteIndex uint8) error 
 func (p *Push3) SetAllPadsColor(paletteIndex uint8) error {
 	for row := range uint8(8) {
 		for col := range uint8(8) {
-			pos := push3.PadPosition{Row: row, Col: col}
+			pos := PadPosition{Row: row, Col: col}
 			if err := p.SetPadColor(pos, paletteIndex); err != nil {
 				return fmt.Errorf("push: setting pad (%d,%d): %w", row, col, err)
 			}
@@ -290,13 +289,13 @@ func (p *Push3) SetAllPadsColor(paletteIndex uint8) error {
 
 // ClearPads turns off all pad LEDs.
 func (p *Push3) ClearPads() error {
-	return p.SetAllPadsColor(push3.PaletteBlack)
+	return p.SetAllPadsColor(PaletteBlack)
 }
 
 // SetAllButtonsColor sets all button LEDs to the same palette color.
 func (p *Push3) SetAllButtonsColor(paletteIndex uint8) error {
 	for _, cc := range allButtonCCs {
-		if err := p.SetButtonColor(push3.ButtonID(cc), paletteIndex); err != nil {
+		if err := p.SetButtonColor(ButtonID(cc), paletteIndex); err != nil {
 			return fmt.Errorf("push: setting button CC %d: %w", cc, err)
 		}
 	}
@@ -305,5 +304,5 @@ func (p *Push3) SetAllButtonsColor(paletteIndex uint8) error {
 
 // ClearButtons turns off all button LEDs.
 func (p *Push3) ClearButtons() error {
-	return p.SetAllButtonsColor(push3.PaletteBlack)
+	return p.SetAllButtonsColor(PaletteBlack)
 }

@@ -2,8 +2,6 @@ package push
 
 import (
 	"testing"
-
-	"github.com/loov/push3/push3"
 )
 
 func TestIsButtonCC(t *testing.T) {
@@ -12,15 +10,15 @@ func TestIsButtonCC(t *testing.T) {
 		cc   uint8
 		want bool
 	}{
-		{"play", byte(push3.ButtonPlay), true},
-		{"record", byte(push3.ButtonRecord), true},
-		{"stop", byte(push3.ButtonStopClip), true},
-		{"shift", byte(push3.ButtonShift), true},
-		{"upper1", byte(push3.ButtonUpper1), true},
-		{"lower1", byte(push3.ButtonLower1), true},
-		{"mute", byte(push3.ButtonMute), true},
-		{"solo", byte(push3.ButtonSolo), true},
-		{"div 1/4", byte(push3.ButtonDiv1_4), true},
+		{"play", byte(ButtonPlay), true},
+		{"record", byte(ButtonRecord), true},
+		{"stop", byte(ButtonStopClip), true},
+		{"shift", byte(ButtonShift), true},
+		{"upper1", byte(ButtonUpper1), true},
+		{"lower1", byte(ButtonLower1), true},
+		{"mute", byte(ButtonMute), true},
+		{"solo", byte(ButtonSolo), true},
+		{"div 1/4", byte(ButtonDiv1_4), true},
 
 		// Encoder CCs should NOT be buttons
 		{"encoder CC 71", 71, false},
@@ -45,14 +43,14 @@ func TestEncoderFromTouchNote(t *testing.T) {
 	tests := []struct {
 		name   string
 		note   uint8
-		wantID push3.EncoderID
+		wantID EncoderID
 		wantOK bool
 	}{
-		{"track 1", 0, push3.EncoderTrack1, true},
-		{"track 8", 7, push3.EncoderTrack8, true},
-		{"volume", 8, push3.EncoderVolume, true},
-		{"tempo", 10, push3.EncoderSwingTempo, true},
-		{"jog", 11, push3.EncoderJog, true},
+		{"track 1", 0, EncoderTrack1, true},
+		{"track 8", 7, EncoderTrack8, true},
+		{"volume", 8, EncoderVolume, true},
+		{"tempo", 10, EncoderSwingTempo, true},
+		{"jog", 11, EncoderJog, true},
 		{"unused 9", 9, 0, false},
 		{"out of range", 12, 0, false},
 		{"pad note", 36, 0, false},
@@ -71,13 +69,13 @@ func TestEncoderFromTouchNote(t *testing.T) {
 }
 
 func TestHandleMIDI_Pads(t *testing.T) {
-	var gotPos push3.PadPosition
+	var gotPos PadPosition
 	var gotVel uint8
 	var gotPressed bool
 	called := false
 
 	p := &Push3{
-		OnPad: func(pos push3.PadPosition, velocity uint8, pressed bool) {
+		OnPad: func(pos PadPosition, velocity uint8, pressed bool) {
 			gotPos = pos
 			gotVel = velocity
 			gotPressed = pressed
@@ -112,12 +110,12 @@ func TestHandleMIDI_Pads(t *testing.T) {
 }
 
 func TestHandleMIDI_Buttons(t *testing.T) {
-	var gotID push3.ButtonID
+	var gotID ButtonID
 	var gotPressed bool
 	called := false
 
 	p := &Push3{
-		OnButton: func(id push3.ButtonID, pressed bool) {
+		OnButton: func(id ButtonID, pressed bool) {
 			gotID = id
 			gotPressed = pressed
 			called = true
@@ -125,12 +123,12 @@ func TestHandleMIDI_Buttons(t *testing.T) {
 	}
 
 	// CC for Play button, value 127 = press
-	p.handleMIDI([]byte{0xB0, byte(push3.ButtonPlay), 127})
+	p.handleMIDI([]byte{0xB0, byte(ButtonPlay), 127})
 	if !called {
 		t.Fatal("OnButton not called")
 	}
-	if gotID != push3.ButtonPlay {
-		t.Errorf("button = %d, want %d", gotID, push3.ButtonPlay)
+	if gotID != ButtonPlay {
+		t.Errorf("button = %d, want %d", gotID, ButtonPlay)
 	}
 	if !gotPressed {
 		t.Error("pressed should be true")
@@ -138,7 +136,7 @@ func TestHandleMIDI_Buttons(t *testing.T) {
 
 	// CC for Play button, value 0 = release
 	called = false
-	p.handleMIDI([]byte{0xB0, byte(push3.ButtonPlay), 0})
+	p.handleMIDI([]byte{0xB0, byte(ButtonPlay), 0})
 	if !called {
 		t.Fatal("OnButton not called for release")
 	}
@@ -148,12 +146,12 @@ func TestHandleMIDI_Buttons(t *testing.T) {
 }
 
 func TestHandleMIDI_Encoders(t *testing.T) {
-	var gotID push3.EncoderID
+	var gotID EncoderID
 	var gotDelta int
 	called := false
 
 	p := &Push3{
-		OnEncoder: func(id push3.EncoderID, delta int) {
+		OnEncoder: func(id EncoderID, delta int) {
 			gotID = id
 			gotDelta = delta
 			called = true
@@ -165,8 +163,8 @@ func TestHandleMIDI_Encoders(t *testing.T) {
 	if !called {
 		t.Fatal("OnEncoder not called")
 	}
-	if gotID != push3.EncoderTrack1 {
-		t.Errorf("encoder = %v, want %v", gotID, push3.EncoderTrack1)
+	if gotID != EncoderTrack1 {
+		t.Errorf("encoder = %v, want %v", gotID, EncoderTrack1)
 	}
 	if gotDelta != 3 {
 		t.Errorf("delta = %d, want 3", gotDelta)
@@ -184,12 +182,12 @@ func TestHandleMIDI_Encoders(t *testing.T) {
 }
 
 func TestHandleMIDI_EncoderTouch(t *testing.T) {
-	var gotID push3.EncoderID
+	var gotID EncoderID
 	var gotTouched bool
 	called := false
 
 	p := &Push3{
-		OnEncoderTouch: func(id push3.EncoderID, touched bool) {
+		OnEncoderTouch: func(id EncoderID, touched bool) {
 			gotID = id
 			gotTouched = touched
 			called = true
@@ -201,8 +199,8 @@ func TestHandleMIDI_EncoderTouch(t *testing.T) {
 	if !called {
 		t.Fatal("OnEncoderTouch not called")
 	}
-	if gotID != push3.EncoderTrack1 {
-		t.Errorf("encoder = %v, want %v", gotID, push3.EncoderTrack1)
+	if gotID != EncoderTrack1 {
+		t.Errorf("encoder = %v, want %v", gotID, EncoderTrack1)
 	}
 	if !gotTouched {
 		t.Error("touched should be true")

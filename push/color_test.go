@@ -2,8 +2,6 @@ package push
 
 import (
 	"testing"
-
-	"github.com/loov/push3/push3"
 )
 
 func TestEncodePaletteColor(t *testing.T) {
@@ -39,17 +37,17 @@ func TestEncodePaletteColor(t *testing.T) {
 func TestEncodeTouchStripConfig(t *testing.T) {
 	tests := []struct {
 		name string
-		cfg  push3.TouchStripConfig
+		cfg  TouchStripConfig
 		want uint8
 	}{
-		{"all false", push3.TouchStripConfig{}, 0},
-		{"host control only", push3.TouchStripConfig{HostControl: true}, 0x01},
-		{"point + autoreturn center", push3.TouchStripConfig{
+		{"all false", TouchStripConfig{}, 0},
+		{"host control only", TouchStripConfig{HostControl: true}, 0x01},
+		{"point + autoreturn center", TouchStripConfig{
 			PointMode:      true,
 			AutoReturn:     true,
 			ReturnToCenter: true,
 		}, 0x68},
-		{"all true", push3.TouchStripConfig{
+		{"all true", TouchStripConfig{
 			HostControl:    true,
 			HostSendsSysEx: true,
 			ModWheel:       true,

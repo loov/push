@@ -2,8 +2,6 @@ package mcu
 
 import (
 	"testing"
-
-	"github.com/loov/push3/push3"
 )
 
 func TestIsMCUSysEx(t *testing.T) {
@@ -87,15 +85,15 @@ func TestHandleHandshake(t *testing.T) {
 }
 
 func TestEncodeSerialReply(t *testing.T) {
-	resp := EncodeSerialReply(push3.MCUModelIDLogic, DefaultSerial)
+	resp := EncodeSerialReply(MCUModelIDLogic, DefaultSerial)
 	if resp[0] != 0xF0 {
 		t.Error("must start with F0")
 	}
 	if resp[len(resp)-1] != 0xF7 {
 		t.Error("must end with F7")
 	}
-	if resp[4] != push3.MCUModelIDLogic {
-		t.Errorf("model ID = 0x%02X, want 0x%02X", resp[4], push3.MCUModelIDLogic)
+	if resp[4] != MCUModelIDLogic {
+		t.Errorf("model ID = 0x%02X, want 0x%02X", resp[4], MCUModelIDLogic)
 	}
 	if resp[5] != 0x1B {
 		t.Errorf("command = 0x%02X, want 0x1B", resp[5])

@@ -25,13 +25,12 @@ import (
 
 	"github.com/loov/push3/midi"
 	"github.com/loov/push3/push"
-	"github.com/loov/push3/push3"
 )
 
 type channelState struct {
 	active  bool
 	note    uint8
-	pos     push3.PadPosition
+	pos     push.PadPosition
 	started time.Time
 }
 
@@ -79,7 +78,7 @@ func main() {
 			}
 			note := data[1]
 			vel := data[2]
-			pos, isPad := push3.PadPositionFromNote(note)
+			pos, isPad := push.PadPositionFromNote(note)
 			if !isPad {
 				return
 			}
@@ -103,7 +102,7 @@ func main() {
 				return
 			}
 			note := data[1]
-			pos, isPad := push3.PadPositionFromNote(note)
+			pos, isPad := push.PadPositionFromNote(note)
 			if !isPad {
 				return
 			}
@@ -171,7 +170,7 @@ func main() {
 	fmt.Println("\nDone")
 }
 
-func printNoteOff(ts string, ch uint8, note uint8, pos push3.PadPosition, cs *channelState) {
+func printNoteOff(ts string, ch uint8, note uint8, pos push.PadPosition, cs *channelState) {
 	if cs.active && cs.note == note {
 		dur := time.Since(cs.started)
 		fmt.Printf("%s  ch=%2d  NOTE OFF  note=%-3d  pad=(%d,%d)  (held %.3fs)\n",

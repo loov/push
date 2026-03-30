@@ -5,8 +5,6 @@
 // is pure []byte ↔ typed value conversion.
 package mcu
 
-import "github.com/loov/push3/push3"
-
 // MessageKind identifies the type of an MCU message.
 type MessageKind uint8
 
@@ -24,7 +22,7 @@ type Message struct {
 	Kind MessageKind
 
 	// Button fields (Kind == MsgButton)
-	Button  push3.MCUButton
+	Button  MCUButton
 	Pressed bool
 
 	// Fader fields (Kind == MsgFader)
@@ -57,7 +55,7 @@ func Parse(data []byte) Message {
 	case status == 0x90 && len(data) >= 3:
 		return Message{
 			Kind:    MsgButton,
-			Button:  push3.MCUButton(data[1]),
+			Button:  MCUButton(data[1]),
 			Pressed: data[2] > 0,
 		}
 
@@ -65,7 +63,7 @@ func Parse(data []byte) Message {
 	case status == 0x80 && len(data) >= 3:
 		return Message{
 			Kind:    MsgButton,
-			Button:  push3.MCUButton(data[1]),
+			Button:  MCUButton(data[1]),
 			Pressed: false,
 		}
 
@@ -87,7 +85,7 @@ func Parse(data []byte) Message {
 			return Message{
 				Kind:        MsgVPot,
 				VPotChannel: cc - 16,
-				VPotDelta:   push3.DecodeRelative(val),
+				VPotDelta:   DecodeRelative(val),
 			}
 		}
 		return Message{Kind: MsgUnknown}
@@ -121,18 +119,27 @@ func Parse(data []byte) Message {
 	return Message{Kind: MsgUnknown}
 }
 
+// DecodeRelative converts a two's complement CC value to a signed delta.
+// Values 1-63 = clockwise, 65-127 = counter-clockwise.
+func DecodeRelative(value uint8) int {
+	if value < 64 {
+		return int(value)
+	}
+	return int(value) - 128
+}
+
 // EncodeButtonPress creates a Note On message for the given MCU button.
-func EncodeButtonPress(button push3.MCUButton) []byte {
+func EncodeButtonPress(button MCUButton) []byte {
 	return []byte{0x90, byte(button), 0x7F}
 }
 
 // EncodeButtonRelease creates a Note On with velocity 0 for the given MCU button.
-func EncodeButtonRelease(button push3.MCUButton) []byte {
+func EncodeButtonRelease(button MCUButton) []byte {
 	return []byte{0x90, byte(button), 0x00}
 }
 
 // EncodeButtonTap sends a press immediately followed by a release.
-func EncodeButtonTap(button push3.MCUButton) [][]byte {
+func EncodeButtonTap(button MCUButton) [][]byte {
 	return [][]byte{
 		EncodeButtonPress(button),
 		EncodeButtonRelease(button),

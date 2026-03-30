@@ -1,4 +1,4 @@
-package push3
+package mcu
 
 // MCU (Mackie Control Universal) protocol vocabulary types.
 

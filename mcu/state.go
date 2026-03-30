@@ -3,8 +3,6 @@ package mcu
 import (
 	"fmt"
 	"sync"
-
-	"github.com/loov/push3/push3"
 )
 
 // State accumulates MCU state from incoming messages.
@@ -12,12 +10,12 @@ import (
 type State struct {
 	mu sync.Mutex
 
-	Transport     push3.TransportState
-	Tracks        [8]push3.TrackState
-	LCD           [2]push3.LCDRow
+	Transport     TransportState
+	Tracks        [8]TrackState
+	LCD           [2]LCDRow
 	VPotRing      [8]uint8
 	SelectedTrack int // -1 if no track selected
-	AssignMode    push3.MCUAssignMode
+	AssignMode    MCUAssignMode
 
 	// Modifier state from host LED feedback.
 	Flip                              bool
@@ -42,12 +40,12 @@ func NewState() *State {
 
 // Snapshot is an immutable copy of the MCU state for reading without locks.
 type Snapshot struct {
-	Transport     push3.TransportState
-	Tracks        [8]push3.TrackState
-	LCD           [2]push3.LCDRow
+	Transport     TransportState
+	Tracks        [8]TrackState
+	LCD           [2]LCDRow
 	VPotRing      [8]uint8
 	SelectedTrack int
-	AssignMode    push3.MCUAssignMode
+	AssignMode    MCUAssignMode
 	Flip          bool
 	Zoom          bool
 	Scrub         bool
@@ -97,47 +95,47 @@ func (s *State) handleButton(msg Message) string {
 
 	switch {
 	// Transport
-	case note == push3.MCUPlay:
+	case note == MCUPlay:
 		s.Transport.Play = pressed
 		s.Transport.Stop = !pressed
 		return fmt.Sprintf("transport: play=%v", pressed)
-	case note == push3.MCUStop:
+	case note == MCUStop:
 		if pressed {
 			s.Transport.Play = false
 			s.Transport.Stop = true
 		}
 		return fmt.Sprintf("transport: stop=%v", pressed)
-	case note == push3.MCURecord:
+	case note == MCURecord:
 		s.Transport.Record = pressed
 		return fmt.Sprintf("transport: record=%v", pressed)
-	case note == push3.MCUFastFwd:
+	case note == MCUFastFwd:
 		s.Transport.FFwd = pressed
 		return fmt.Sprintf("transport: ffwd=%v", pressed)
-	case note == push3.MCURewind:
+	case note == MCURewind:
 		s.Transport.Rew = pressed
 		return fmt.Sprintf("transport: rew=%v", pressed)
 
 	// Channel strip: Rec arm (0-7)
-	case note >= push3.MCURecArm0 && note < push3.MCURecArm0+8:
-		ch := int(note - push3.MCURecArm0)
+	case note >= MCURecArm0 && note < MCURecArm0+8:
+		ch := int(note - MCURecArm0)
 		s.Tracks[ch].RecArm = pressed
 		return fmt.Sprintf("track[%d]: rec_arm=%v", ch, pressed)
 
 	// Channel strip: Solo (8-15)
-	case note >= push3.MCUSolo0 && note < push3.MCUSolo0+8:
-		ch := int(note - push3.MCUSolo0)
+	case note >= MCUSolo0 && note < MCUSolo0+8:
+		ch := int(note - MCUSolo0)
 		s.Tracks[ch].Solo = pressed
 		return fmt.Sprintf("track[%d]: solo=%v", ch, pressed)
 
 	// Channel strip: Mute (16-23)
-	case note >= push3.MCUMute0 && note < push3.MCUMute0+8:
-		ch := int(note - push3.MCUMute0)
+	case note >= MCUMute0 && note < MCUMute0+8:
+		ch := int(note - MCUMute0)
 		s.Tracks[ch].Mute = pressed
 		return fmt.Sprintf("track[%d]: mute=%v", ch, pressed)
 
 	// Channel strip: Select (24-31)
-	case note >= push3.MCUSelect0 && note < push3.MCUSelect0+8:
-		ch := int(note - push3.MCUSelect0)
+	case note >= MCUSelect0 && note < MCUSelect0+8:
+		ch := int(note - MCUSelect0)
 		if pressed {
 			for i := range s.Tracks {
 				s.Tracks[i].Selected = false
@@ -148,28 +146,28 @@ func (s *State) handleButton(msg Message) string {
 		return fmt.Sprintf("track[%d]: selected=%v", ch, pressed)
 
 	// Modifier LEDs from host
-	case note == push3.MCUModShift:
+	case note == MCUModShift:
 		s.ModShift = pressed
-	case note == push3.MCUModCtrl:
+	case note == MCUModCtrl:
 		s.ModCtrl = pressed
-	case note == push3.MCUModOption:
+	case note == MCUModOption:
 		s.ModOpt = pressed
-	case note == push3.MCUModAlt:
+	case note == MCUModAlt:
 		s.ModAlt = pressed
 
 	// Flip LED
-	case byte(note) == byte(push3.MCUFlip):
+	case byte(note) == byte(MCUFlip):
 		s.Flip = pressed
 		return fmt.Sprintf("flip=%v", pressed)
 
 	// Zoom/Scrub LEDs
-	case note == push3.MCUZoom:
+	case note == MCUZoom:
 		s.Zoom = pressed
-	case note == push3.MCUScrub:
+	case note == MCUScrub:
 		s.Scrub = pressed
 
 	// Assign buttons — detect mode
-	case note >= push3.MCUAssignTrack && note <= push3.MCUAssignInstrument:
+	case note >= MCUAssignTrack && note <= MCUAssignInstrument:
 		if pressed {
 			s.AssignMode = DetectModeFromAssign(byte(note))
 			return fmt.Sprintf("assign_mode=%s", s.AssignMode)
@@ -221,7 +219,7 @@ func (s *State) handleSysEx(msg Message) string {
 
 		// Try to detect mode from LCD content.
 		detected := DetectMode(s.LCD)
-		if detected != push3.MCUAssignModeUnknown {
+		if detected != MCUAssignModeUnknown {
 			s.AssignMode = detected
 		}
 

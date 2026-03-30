@@ -14,7 +14,6 @@ import (
 
 	"github.com/loov/push3/midi"
 	"github.com/loov/push3/push"
-	"github.com/loov/push3/push3"
 )
 
 func main() {
@@ -51,7 +50,7 @@ func run(ctx context.Context, sourceName, destName string) error {
 
 	state := &plasmaState{}
 
-	p.OnPad = func(pos push3.PadPosition, velocity uint8, pressed bool) {
+	p.OnPad = func(pos push.PadPosition, velocity uint8, pressed bool) {
 		if !pressed {
 			return
 		}
@@ -84,7 +83,7 @@ func run(ctx context.Context, sourceName, destName string) error {
 					continue
 				}
 				prev[row][col] = idx
-				pos := push3.PadPosition{Row: row, Col: col}
+				pos := push.PadPosition{Row: row, Col: col}
 				if err := p.SetPadColor(pos, idx); err != nil {
 					return err
 				}
@@ -184,7 +183,7 @@ func uploadRainbowPalette(p *push.Push3) error {
 	for i := range 127 {
 		h := float64(i) / 127 * 360
 		r, g, b := hsvToRGB(h, 1, 1)
-		if err := p.SetPaletteEntry(uint8(i+1), push3.Color{R: r, G: g, B: b}); err != nil {
+		if err := p.SetPaletteEntry(uint8(i+1), push.Color{R: r, G: g, B: b}); err != nil {
 			return fmt.Errorf("setting palette %d: %w", i+1, err)
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/loov/push3/push3"
+	"github.com/loov/push3/push"
 )
 
 func TestLayoutMatchesReference(t *testing.T) {
@@ -15,7 +15,7 @@ func TestLayoutMatchesReference(t *testing.T) {
 	}
 
 	m := model{
-		buttons: make(map[push3.ButtonID]bool),
+		buttons: make(map[push.ButtonID]bool),
 	}
 	// The reference shows "( 1 )" etc for encoders — set encoder values to match.
 	for i := range 8 {

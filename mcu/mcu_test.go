@@ -2,8 +2,6 @@ package mcu
 
 import (
 	"testing"
-
-	"github.com/loov/push3/push3"
 )
 
 func TestParse(t *testing.T) {
@@ -15,17 +13,17 @@ func TestParse(t *testing.T) {
 		{
 			name: "note on - button press",
 			data: []byte{0x90, 94, 127}, // PLAY press
-			want: Message{Kind: MsgButton, Button: push3.MCUPlay, Pressed: true},
+			want: Message{Kind: MsgButton, Button: MCUPlay, Pressed: true},
 		},
 		{
 			name: "note on vel 0 - button release",
 			data: []byte{0x90, 94, 0}, // PLAY release
-			want: Message{Kind: MsgButton, Button: push3.MCUPlay, Pressed: false},
+			want: Message{Kind: MsgButton, Button: MCUPlay, Pressed: false},
 		},
 		{
 			name: "note off - button release",
 			data: []byte{0x80, 93, 0}, // STOP release
-			want: Message{Kind: MsgButton, Button: push3.MCUStop, Pressed: false},
+			want: Message{Kind: MsgButton, Button: MCUStop, Pressed: false},
 		},
 		{
 			name: "pitch bend - fader",
@@ -98,7 +96,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestEncodeButtonPress(t *testing.T) {
-	got := EncodeButtonPress(push3.MCUPlay)
+	got := EncodeButtonPress(MCUPlay)
 	want := []byte{0x90, 94, 0x7F}
 	if len(got) != len(want) {
 		t.Fatalf("len = %d, want %d", len(got), len(want))
@@ -111,7 +109,7 @@ func TestEncodeButtonPress(t *testing.T) {
 }
 
 func TestEncodeButtonRelease(t *testing.T) {
-	got := EncodeButtonRelease(push3.MCUStop)
+	got := EncodeButtonRelease(MCUStop)
 	want := []byte{0x90, 93, 0x00}
 	for i := range want {
 		if got[i] != want[i] {
