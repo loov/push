@@ -104,6 +104,8 @@ func (p *Device) handleMIDI(data []byte) {
 			if pressed {
 				p.activePads[ch] = pos
 				p.padActive[ch] = true
+			} else {
+				p.padActive[ch] = false
 			}
 			if p.handler.OnPad != nil {
 				p.handler.OnPad(pos, velocity, pressed)
