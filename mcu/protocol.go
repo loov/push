@@ -73,6 +73,12 @@ func LEDStateFromVelocity(vel uint8) LEDState {
 	return LEDOff
 }
 
+// DisplayDigit holds the state of one 7-segment display digit.
+type DisplayDigit struct {
+	Char byte // character code (ASCII 0x30-0x5F range, bit 6 stripped)
+	Dot  bool // dot/decimal point LED
+}
+
 // Transport buttons.
 const (
 	Rewind  Button = 91

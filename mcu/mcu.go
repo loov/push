@@ -15,6 +15,9 @@ const (
 	MsgVPot                        // CC 16-23 → encoder rotation
 	MsgSysEx                       // SysEx → LCD, handshake, meters, etc.
 	MsgVPotRing                    // CC 48-55 → V-Pot LED ring state
+	MsgJogWheel                    // CC 60 → jog wheel rotation
+	MsgTimecode                    // CC 64-73 → 7-segment timecode digit
+	MsgAssignment                  // CC 74-75 → 2-digit assignment display
 	MsgChannelPressure             // Channel pressure → meter level
 )
 
@@ -31,6 +34,12 @@ func (k MessageKind) String() string {
 		return "SysEx"
 	case MsgVPotRing:
 		return "VPotRing"
+	case MsgJogWheel:
+		return "JogWheel"
+	case MsgTimecode:
+		return "Timecode"
+	case MsgAssignment:
+		return "Assignment"
 	case MsgChannelPressure:
 		return "ChannelPressure"
 	default:
@@ -60,6 +69,14 @@ type Message struct {
 	VPotRingMode    VPotRingLEDMode // display mode
 	VPotRingValue   uint8       // 0-11
 	VPotRingCenter  bool        // center LED on/off
+
+	// JogWheel fields (Kind == MsgJogWheel)
+	JogDelta int // positive = clockwise, negative = counter-clockwise
+
+	// Display fields (Kind == MsgTimecode or MsgAssignment)
+	DisplayPosition uint8 // digit position (0-9 for timecode, 0-1 for assignment)
+	DisplayChar     byte  // 7-segment character code (ASCII 0x30-0x5F range)
+	DisplayDot      bool  // dot/decimal point LED
 
 	// SysEx fields (Kind == MsgSysEx)
 	SysExData []byte // raw payload between F0 and F7
@@ -109,26 +126,48 @@ func Parse(data []byte) Message {
 			FaderValue:   value,
 		}
 
-	// Control Change (0xB0)
-	case status == 0xB0 && len(data) >= 3:
+	// Control Change (0xB0 or 0xBF) — timecode display can arrive on channel 15
+	case (status == 0xB0 || status == 0xBF) && len(data) >= 3:
 		cc := data[1]
 		val := data[2]
 		switch {
-		// CC 16-23: V-Pot rotation (encoder turn)
-		case cc >= 16 && cc <= 23:
+		// CC 16-23: V-Pot rotation (encoder turn) — channel 0 only
+		case status == 0xB0 && cc >= 16 && cc <= 23:
 			return Message{
 				Kind:        MsgVPot,
 				VPotChannel: cc - 16,
 				VPotDelta:   DecodeRelative(val),
 			}
-		// CC 48-55: V-Pot LED ring (host → device)
-		case cc >= 48 && cc <= 55:
+		// CC 48-55: V-Pot LED ring (host → device) — channel 0 only
+		case status == 0xB0 && cc >= 48 && cc <= 55:
 			return Message{
 				Kind:            MsgVPotRing,
 				VPotRingChannel: cc - 48,
 				VPotRingMode:    VPotRingLEDMode((val >> 4) & 0x03),
 				VPotRingValue:   val & 0x0F,
 				VPotRingCenter:  val&0x40 != 0,
+			}
+		// CC 60: Jog wheel rotation — channel 0 only
+		case status == 0xB0 && cc == 60:
+			return Message{
+				Kind:     MsgJogWheel,
+				JogDelta: DecodeRelative(val),
+			}
+		// CC 64-73: Timecode display (7-segment, right-to-left) — channel 0 or 15
+		case cc >= 64 && cc <= 73:
+			return Message{
+				Kind:            MsgTimecode,
+				DisplayPosition: cc - 64,
+				DisplayChar:     val & 0x3F,
+				DisplayDot:      val&0x40 != 0,
+			}
+		// CC 74-75: Assignment display (2-digit mode indicator) — channel 0 or 15
+		case cc >= 74 && cc <= 75:
+			return Message{
+				Kind:            MsgAssignment,
+				DisplayPosition: cc - 74,
+				DisplayChar:     val & 0x3F,
+				DisplayDot:      val&0x40 != 0,
 			}
 		}
 		return Message{Kind: MsgUnknown}
@@ -219,4 +258,24 @@ func EncodeVPotRing(channel uint8, mode VPotRingLEDMode, value uint8, center boo
 		val |= 0x40
 	}
 	return []byte{0xB0, 48 + (channel & 0x07), val}
+}
+
+// EncodeTimecodeDigit creates a CC 64-73 message for a 7-segment timecode digit.
+// position: 0-9 (right-to-left), char: character code (0x00-0x3F), dot: decimal point.
+func EncodeTimecodeDigit(position uint8, char byte, dot bool) []byte {
+	val := char & 0x3F
+	if dot {
+		val |= 0x40
+	}
+	return []byte{0xB0, 64 + (position & 0x0F), val}
+}
+
+// EncodeAssignmentDigit creates a CC 74-75 message for the 2-digit assignment display.
+// position: 0-1, char: character code (0x00-0x3F), dot: decimal point.
+func EncodeAssignmentDigit(position uint8, char byte, dot bool) []byte {
+	val := char & 0x3F
+	if dot {
+		val |= 0x40
+	}
+	return []byte{0xB0, 74 + (position & 0x01), val}
 }

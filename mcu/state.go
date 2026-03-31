@@ -14,7 +14,9 @@ type State struct {
 	Tracks        [8]TrackState
 	LCD           [2]LCDRow
 	VPotRing      [8]VPotRingState
-	SelectedTrack int // -1 if no track selected
+	Timecode      [10]DisplayDigit // 10-digit timecode display (right-to-left)
+	Assignment    [2]DisplayDigit  // 2-digit assignment display
+	SelectedTrack int              // -1 if no track selected
 	AssignMode    AssignMode
 
 	// Modifier state from host LED feedback.
@@ -44,6 +46,8 @@ type Snapshot struct {
 	Tracks        [8]TrackState
 	LCD           [2]LCDRow
 	VPotRing      [8]VPotRingState
+	Timecode      [10]DisplayDigit
+	Assignment    [2]DisplayDigit
 	SelectedTrack int
 	AssignMode    AssignMode
 	Flip          bool
@@ -60,6 +64,8 @@ func (s *State) Snapshot() Snapshot {
 		Tracks:        s.Tracks,
 		LCD:           s.LCD,
 		VPotRing:      s.VPotRing,
+		Timecode:      s.Timecode,
+		Assignment:    s.Assignment,
 		SelectedTrack: s.SelectedTrack,
 		AssignMode:    s.AssignMode,
 		Flip:          s.Flip,
@@ -83,6 +89,12 @@ func (s *State) Handle(msg Message) string {
 		return s.handleVPot(msg)
 	case MsgVPotRing:
 		return s.handleVPotRing(msg)
+	case MsgJogWheel:
+		return fmt.Sprintf("jog: delta=%d", msg.JogDelta)
+	case MsgTimecode:
+		return s.handleTimecode(msg)
+	case MsgAssignment:
+		return s.handleAssignment(msg)
 	case MsgChannelPressure:
 		return s.handleMeter(msg)
 	case MsgSysEx:
@@ -203,6 +215,24 @@ func (s *State) handleVPotRing(msg Message) string {
 		Center: msg.VPotRingCenter,
 	}
 	return fmt.Sprintf("vpot_ring[%d]: mode=%s value=%d center=%v", ch, msg.VPotRingMode, msg.VPotRingValue, msg.VPotRingCenter)
+}
+
+func (s *State) handleTimecode(msg Message) string {
+	pos := msg.DisplayPosition
+	if pos >= 10 {
+		return ""
+	}
+	s.Timecode[pos] = DisplayDigit{Char: msg.DisplayChar, Dot: msg.DisplayDot}
+	return fmt.Sprintf("timecode[%d]: char=0x%02X dot=%v", pos, msg.DisplayChar, msg.DisplayDot)
+}
+
+func (s *State) handleAssignment(msg Message) string {
+	pos := msg.DisplayPosition
+	if pos >= 2 {
+		return ""
+	}
+	s.Assignment[pos] = DisplayDigit{Char: msg.DisplayChar, Dot: msg.DisplayDot}
+	return fmt.Sprintf("assignment[%d]: char=0x%02X dot=%v", pos, msg.DisplayChar, msg.DisplayDot)
 }
 
 func (s *State) handleMeter(msg Message) string {
