@@ -61,8 +61,13 @@ func TestParse(t *testing.T) {
 			want: Message{Kind: MsgUnknown},
 		},
 		{
+			name: "CC vpot ring",
+			data: []byte{0xB0, 50, 0x45}, // CC 50 = channel 2, mode=0, value=5, center=true
+			want: Message{Kind: MsgVPotRing, VPotRingChannel: 2, VPotRingMode: VPotRingSingle, VPotRingValue: 5, VPotRingCenter: true},
+		},
+		{
 			name: "unknown CC",
-			data: []byte{0xB0, 50, 64},
+			data: []byte{0xB0, 80, 64},
 			want: Message{Kind: MsgUnknown},
 		},
 	}
@@ -85,6 +90,13 @@ func TestParse(t *testing.T) {
 			case MsgVPot:
 				if got.VPotChannel != tt.want.VPotChannel || got.VPotDelta != tt.want.VPotDelta {
 					t.Errorf("VPot = ch%d/%d, want ch%d/%d", got.VPotChannel, got.VPotDelta, tt.want.VPotChannel, tt.want.VPotDelta)
+				}
+			case MsgVPotRing:
+				if got.VPotRingChannel != tt.want.VPotRingChannel || got.VPotRingMode != tt.want.VPotRingMode ||
+					got.VPotRingValue != tt.want.VPotRingValue || got.VPotRingCenter != tt.want.VPotRingCenter {
+					t.Errorf("VPotRing = ch%d/mode%d/val%d/center%v, want ch%d/mode%d/val%d/center%v",
+						got.VPotRingChannel, got.VPotRingMode, got.VPotRingValue, got.VPotRingCenter,
+						tt.want.VPotRingChannel, tt.want.VPotRingMode, tt.want.VPotRingValue, tt.want.VPotRingCenter)
 				}
 			case MsgChannelPressure:
 				if got.MeterChannel != tt.want.MeterChannel || got.MeterLevel != tt.want.MeterLevel {

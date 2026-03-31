@@ -13,7 +13,7 @@ type State struct {
 	Transport     TransportState
 	Tracks        [8]TrackState
 	LCD           [2]LCDRow
-	VPotRing      [8]uint8
+	VPotRing      [8]VPotRingState
 	SelectedTrack int // -1 if no track selected
 	AssignMode    AssignMode
 
@@ -43,7 +43,7 @@ type Snapshot struct {
 	Transport     TransportState
 	Tracks        [8]TrackState
 	LCD           [2]LCDRow
-	VPotRing      [8]uint8
+	VPotRing      [8]VPotRingState
 	SelectedTrack int
 	AssignMode    AssignMode
 	Flip          bool
@@ -81,6 +81,8 @@ func (s *State) Handle(msg Message) string {
 		return s.handleFader(msg)
 	case MsgVPot:
 		return s.handleVPot(msg)
+	case MsgVPotRing:
+		return s.handleVPotRing(msg)
 	case MsgChannelPressure:
 		return s.handleMeter(msg)
 	case MsgSysEx:
@@ -186,8 +188,21 @@ func (s *State) handleFader(msg Message) string {
 }
 
 func (s *State) handleVPot(msg Message) string {
-	// V-Pot rotation updates are informational; the ring display comes via SysEx.
+	// V-Pot rotation updates are informational; the ring display comes via CC 48-55.
 	return fmt.Sprintf("vpot[%d]: delta=%d", msg.VPotChannel, msg.VPotDelta)
+}
+
+func (s *State) handleVPotRing(msg Message) string {
+	ch := msg.VPotRingChannel
+	if ch >= 8 {
+		return ""
+	}
+	s.VPotRing[ch] = VPotRingState{
+		Mode:   msg.VPotRingMode,
+		Value:  msg.VPotRingValue,
+		Center: msg.VPotRingCenter,
+	}
+	return fmt.Sprintf("vpot_ring[%d]: mode=%s value=%d center=%v", ch, msg.VPotRingMode, msg.VPotRingValue, msg.VPotRingCenter)
 }
 
 func (s *State) handleMeter(msg Message) string {
@@ -239,11 +254,16 @@ func (s *State) handleSysEx(msg Message) string {
 		return fmt.Sprintf("lcd: pos=%d text=%q", pos, text)
 
 	case SysExMeterMode:
+		// Logic Pro repurposes SysEx 0x20 as V-Pot ring echo.
 		if len(payload) >= 7 {
 			ch := payload[5] & 0x07
-			ring := payload[6] & 0x0F
-			s.VPotRing[ch] = ring
-			return fmt.Sprintf("vpot_ring[%d]=%d", ch, ring)
+			val := payload[6]
+			s.VPotRing[ch] = VPotRingState{
+				Mode:   VPotRingLEDMode((val >> 4) & 0x03),
+				Value:  val & 0x0F,
+				Center: val&0x40 != 0,
+			}
+			return fmt.Sprintf("vpot_ring[%d]: value=%d", ch, val&0x0F)
 		}
 	}
 

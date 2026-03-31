@@ -14,6 +14,7 @@ const (
 	MsgFader                       // Pitch Bend → fader position
 	MsgVPot                        // CC 16-23 → encoder rotation
 	MsgSysEx                       // SysEx → LCD, handshake, meters, etc.
+	MsgVPotRing                    // CC 48-55 → V-Pot LED ring state
 	MsgChannelPressure             // Channel pressure → meter level
 )
 
@@ -28,6 +29,8 @@ func (k MessageKind) String() string {
 		return "VPot"
 	case MsgSysEx:
 		return "SysEx"
+	case MsgVPotRing:
+		return "VPotRing"
 	case MsgChannelPressure:
 		return "ChannelPressure"
 	default:
@@ -51,6 +54,12 @@ type Message struct {
 	// VPot fields (Kind == MsgVPot)
 	VPotChannel uint8 // 0-7
 	VPotDelta   int   // positive = clockwise, negative = counter-clockwise
+
+	// VPotRing fields (Kind == MsgVPotRing)
+	VPotRingChannel uint8       // 0-7
+	VPotRingMode    VPotRingLEDMode // display mode
+	VPotRingValue   uint8       // 0-11
+	VPotRingCenter  bool        // center LED on/off
 
 	// SysEx fields (Kind == MsgSysEx)
 	SysExData []byte // raw payload between F0 and F7
@@ -100,15 +109,26 @@ func Parse(data []byte) Message {
 			FaderValue:   value,
 		}
 
-	// Control Change (0xB0) — V-Pot rotation
+	// Control Change (0xB0)
 	case status == 0xB0 && len(data) >= 3:
 		cc := data[1]
 		val := data[2]
-		if cc >= 16 && cc <= 23 {
+		switch {
+		// CC 16-23: V-Pot rotation (encoder turn)
+		case cc >= 16 && cc <= 23:
 			return Message{
 				Kind:        MsgVPot,
 				VPotChannel: cc - 16,
 				VPotDelta:   DecodeRelative(val),
+			}
+		// CC 48-55: V-Pot LED ring (host → device)
+		case cc >= 48 && cc <= 55:
+			return Message{
+				Kind:            MsgVPotRing,
+				VPotRingChannel: cc - 48,
+				VPotRingMode:    VPotRingLEDMode((val >> 4) & 0x03),
+				VPotRingValue:   val & 0x0F,
+				VPotRingCenter:  val&0x40 != 0,
 			}
 		}
 		return Message{Kind: MsgUnknown}
@@ -190,4 +210,13 @@ func EncodeVPot(channel uint8, delta int) []byte {
 		val = byte(128 + delta)
 	}
 	return []byte{0xB0, 16 + (channel & 0x07), val}
+}
+
+// EncodeVPotRing creates a CC 48-55 message for V-Pot LED ring display.
+func EncodeVPotRing(channel uint8, mode VPotRingLEDMode, value uint8, center bool) []byte {
+	val := byte(mode&0x03)<<4 | byte(value&0x0F)
+	if center {
+		val |= 0x40
+	}
+	return []byte{0xB0, 48 + (channel & 0x07), val}
 }

@@ -27,6 +27,38 @@ func (s LEDState) String() string {
 	}
 }
 
+// VPotRingLEDMode is the display mode for V-Pot LED rings (CC 48-55).
+type VPotRingLEDMode uint8
+
+const (
+	VPotRingSingle   VPotRingLEDMode = 0 // single dot
+	VPotRingBoostCut VPotRingLEDMode = 1 // boost/cut from center
+	VPotRingFill     VPotRingLEDMode = 2 // fill left to right
+	VPotRingSpread   VPotRingLEDMode = 3 // spread from center
+)
+
+func (m VPotRingLEDMode) String() string {
+	switch m {
+	case VPotRingSingle:
+		return "Single"
+	case VPotRingBoostCut:
+		return "BoostCut"
+	case VPotRingFill:
+		return "Fill"
+	case VPotRingSpread:
+		return "Spread"
+	default:
+		return "Unknown"
+	}
+}
+
+// VPotRingState holds the LED ring state for one V-Pot encoder.
+type VPotRingState struct {
+	Mode   VPotRingLEDMode
+	Value  uint8 // 0-11
+	Center bool  // center LED on/off
+}
+
 // LEDStateFromVelocity converts a MIDI velocity to an LED state.
 func LEDStateFromVelocity(vel uint8) LEDState {
 	if vel == 0 {
