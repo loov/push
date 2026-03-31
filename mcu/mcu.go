@@ -279,3 +279,30 @@ func EncodeAssignmentDigit(position uint8, char byte, dot bool) []byte {
 	}
 	return []byte{0xB0, 74 + (position & 0x01), val}
 }
+
+// EncodeLCD creates a SysEx message to update LCD text at the given position.
+// modelID: device model ID, position: 0-111, text: ASCII characters to write.
+func EncodeLCD(modelID byte, position uint8, text string) []byte {
+	msg := []byte{0xF0}
+	msg = append(msg, SysExPrefix[:]...)
+	msg = append(msg, modelID, cmdLCD, position)
+	msg = append(msg, []byte(text)...)
+	msg = append(msg, 0xF7)
+	return msg
+}
+
+// EncodeMeterLevel creates a Channel Pressure message for meter display.
+// channel: 0-7, level: 0x0-0xD (signal level) or MeterSetOverload/MeterClearOverload.
+func EncodeMeterLevel(channel uint8, level uint8) []byte {
+	return []byte{0xD0, (channel&0x07)<<4 | (level & 0x0F)}
+}
+
+// EncodeFaderTouch creates a Note On message for a fader touch event.
+// channel: 0-7 (strips), 8 (master). touched: true=finger on, false=finger off.
+func EncodeFaderTouch(channel uint8, touched bool) []byte {
+	vel := byte(0x00)
+	if touched {
+		vel = 0x7F
+	}
+	return []byte{0x90, byte(FaderTouch0) + (channel & 0x0F), vel}
+}
