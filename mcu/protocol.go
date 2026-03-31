@@ -93,6 +93,55 @@ const (
 	Click Button = 65
 )
 
+// Automation buttons.
+const (
+	AutoRead  Button = 74
+	AutoWrite Button = 75
+	AutoTrim  Button = 76
+	AutoTouch Button = 77
+	AutoLatch Button = 78
+	AutoGroup Button = 79
+)
+
+// File/edit buttons.
+const (
+	Save   Button = 80
+	Undo   Button = 81
+	Cancel Button = 82
+	Enter  Button = 83
+)
+
+// Editing buttons.
+const (
+	Markers    Button = 84
+	Nudge      Button = 85
+	Drop       Button = 87
+	Replace    Button = 88
+	GlobalSolo Button = 90
+)
+
+// User switches.
+const (
+	UserSwitch1 Button = 102
+	UserSwitch2 Button = 103
+)
+
+// Fader touch buttons (base + channel 0-7, 8 = master).
+const FaderTouch0 Button = 104 // 104-112
+
+// FaderTouch returns the fader touch button for channel 0-7, or 8 for master.
+func FaderTouch(ch uint8) Button { return FaderTouch0 + Button(ch) }
+
+// Display LEDs.
+const (
+	SMPTELED    Button = 113
+	BeatsLED    Button = 114
+	RudeSoloLED Button = 115
+)
+
+// Hardware.
+const RelayClick Button = 118
+
 // TransportState holds the current transport status.
 type TransportState struct {
 	Play   bool
