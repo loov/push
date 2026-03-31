@@ -190,9 +190,22 @@ func (s *State) handleVPot(msg Message) string {
 	return fmt.Sprintf("vpot[%d]: delta=%d", msg.VPotChannel, msg.VPotDelta)
 }
 
-func (s *State) handleMeter(_ Message) string {
-	// Meter level updates for the channel strip.
-	return ""
+func (s *State) handleMeter(msg Message) string {
+	ch := msg.MeterChannel
+	if ch >= 8 {
+		return ""
+	}
+	switch msg.MeterLevel {
+	case MeterSetOverload:
+		s.Tracks[ch].Overload = true
+		return fmt.Sprintf("track[%d]: overload=set", ch)
+	case MeterClearOverload:
+		s.Tracks[ch].Overload = false
+		return fmt.Sprintf("track[%d]: overload=clear", ch)
+	default:
+		s.Tracks[ch].MeterLevel = msg.MeterLevel
+		return fmt.Sprintf("track[%d]: meter=%d", ch, msg.MeterLevel)
+	}
 }
 
 func (s *State) handleSysEx(msg Message) string {

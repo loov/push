@@ -178,6 +178,12 @@ const (
 // Hardware.
 const RelayClick Button = 118
 
+// Meter level special values.
+const (
+	MeterSetOverload   uint8 = 0x0E // set channel overload indicator
+	MeterClearOverload uint8 = 0x0F // clear channel overload indicator
+)
+
 // TransportState holds the current transport status.
 type TransportState struct {
 	Play   bool
@@ -196,6 +202,8 @@ type TrackState struct {
 	Selected   bool
 	FaderLevel uint16 // 14-bit, 0-16383
 	Pan        int8   // -63 to +63
+	MeterLevel uint8  // 0x0-0xD signal level
+	Overload   bool   // channel overload indicator
 }
 
 // LCDRow is one row of the MCU scribble strip (56 ASCII characters).

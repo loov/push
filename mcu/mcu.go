@@ -57,7 +57,7 @@ type Message struct {
 
 	// Meter fields (Kind == MsgChannelPressure)
 	MeterChannel uint8 // 0-7
-	MeterLevel   uint8 // 0-15
+	MeterLevel   uint8 // 0-13 (signal level) or MeterSetOverload/MeterClearOverload
 }
 
 // LED returns the three-state LED interpretation of the button velocity.
