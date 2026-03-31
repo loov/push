@@ -42,8 +42,8 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name: "CC vpot counter-clockwise",
-			data: []byte{0xB0, 17, 65}, // channel 1, delta -63
-			want: Message{Kind: MsgVPot, VPotChannel: 1, VPotDelta: -63},
+			data: []byte{0xB0, 17, 65}, // channel 1, 0b01000001 = sign-magnitude -1
+			want: Message{Kind: MsgVPot, VPotChannel: 1, VPotDelta: -1},
 		},
 		{
 			name: "channel pressure - meter",
@@ -163,8 +163,8 @@ func TestEncodeVPot(t *testing.T) {
 	}{
 		{"ch0 cw 1", 0, 1, 16, 1},
 		{"ch0 cw 10", 0, 10, 16, 10},
-		{"ch0 ccw -1", 0, -1, 16, 127},
-		{"ch0 ccw -10", 0, -10, 16, 118},
+		{"ch0 ccw -1", 0, -1, 16, 65},  // 0x40 | 1 = 65
+		{"ch0 ccw -10", 0, -10, 16, 74}, // 0x40 | 10 = 74
 		{"ch3 cw 5", 3, 5, 19, 5},
 	}
 	for _, tt := range tests {

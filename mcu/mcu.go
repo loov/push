@@ -201,13 +201,14 @@ func Parse(data []byte) Message {
 	return Message{Kind: MsgUnknown}
 }
 
-// DecodeRelative converts a two's complement CC value to a signed delta.
+// DecodeRelative converts a sign-magnitude CC value to a signed delta.
+// Bit 6 is the sign (0=positive, 1=negative), bits 0-5 are the magnitude.
 // Values 1-63 = clockwise, 65-127 = counter-clockwise.
 func DecodeRelative(value uint8) int {
 	if value < 64 {
 		return int(value)
 	}
-	return int(value) - 128
+	return -int(value & 0x3F)
 }
 
 // EncodeButtonPress creates a Note On message for the given button.
@@ -246,7 +247,7 @@ func EncodeVPot(channel uint8, delta int) []byte {
 	if delta >= 0 {
 		val = byte(delta & 0x3F)
 	} else {
-		val = byte(128 + delta)
+		val = 0x40 | byte(-delta&0x3F)
 	}
 	return []byte{0xB0, 16 + (channel & 0x07), val}
 }
