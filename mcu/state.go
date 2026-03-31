@@ -159,7 +159,10 @@ func (s *State) handleButton(msg Message) string {
 		}
 		return fmt.Sprintf("track[%d]: selected=%v", ch, pressed)
 
-	// Modifier LEDs from host
+	// Modifier LEDs from host.
+	// Notes 54-57 serve dual purpose as modifiers and automation mode
+	// in Logic Pro. Modifier state is always updated; the assign range
+	// handler below will not reach these notes since modifiers match first.
 	case note == ModShift:
 		s.ModShift = pressed
 	case note == ModCtrl:
@@ -169,7 +172,9 @@ func (s *State) handleButton(msg Message) string {
 	case note == ModAlt:
 		s.ModAlt = pressed
 
-	// Flip LED
+	// Flip LED (note 50, shared with AssignPan).
+	// Flip is checked before the assign range so it takes priority,
+	// matching LogicX-Push2 reference behavior.
 	case note == Flip:
 		s.Flip = pressed
 		return fmt.Sprintf("flip=%v", pressed)

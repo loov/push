@@ -133,6 +133,8 @@ const (
 )
 
 // Assign buttons.
+// Note: AssignPan (50) shares its note with Flip — Logic Pro uses
+// the same note for both functions.
 const (
 	AssignTrack      Button = 48
 	AssignSend       Button = 49
@@ -143,6 +145,10 @@ const (
 )
 
 // Modifier buttons.
+// Note: In Logic Pro, notes 54-57 serve dual purpose as both modifier
+// buttons (Shift/Ctrl/Option/Alt) and automation mode buttons
+// (Read/Off, Write, Trim, Touch). The state handler processes them
+// as modifiers first, matching the LogicX-Push2 reference behavior.
 const (
 	ModShift  Button = 54
 	ModCtrl   Button = 55
@@ -159,6 +165,7 @@ const (
 )
 
 // Miscellaneous.
+// Note: Flip (50) shares its note with AssignPan.
 const (
 	Flip  Button = 50
 	Zoom  Button = 72
