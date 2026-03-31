@@ -8,7 +8,7 @@ func TestStateTransport(t *testing.T) {
 	s := NewState()
 
 	// Play press
-	s.Handle(Message{Kind: MsgButton, Button: MCUPlay, Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Play, Pressed: true})
 	snap := s.Snapshot()
 	if !snap.Transport.Play {
 		t.Error("expected play=true after play press")
@@ -18,7 +18,7 @@ func TestStateTransport(t *testing.T) {
 	}
 
 	// Stop press
-	s.Handle(Message{Kind: MsgButton, Button: MCUStop, Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Stop, Pressed: true})
 	snap = s.Snapshot()
 	if snap.Transport.Play {
 		t.Error("expected play=false after stop press")
@@ -28,7 +28,7 @@ func TestStateTransport(t *testing.T) {
 	}
 
 	// Record press
-	s.Handle(Message{Kind: MsgButton, Button: MCURecord, Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Record, Pressed: true})
 	snap = s.Snapshot()
 	if !snap.Transport.Record {
 		t.Error("expected record=true")
@@ -39,7 +39,7 @@ func TestStateTrackSelect(t *testing.T) {
 	s := NewState()
 
 	// Select track 3
-	s.Handle(Message{Kind: MsgButton, Button: MCUSelect(3), Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Select(3), Pressed: true})
 	snap := s.Snapshot()
 	if snap.SelectedTrack != 3 {
 		t.Errorf("SelectedTrack = %d, want 3", snap.SelectedTrack)
@@ -49,7 +49,7 @@ func TestStateTrackSelect(t *testing.T) {
 	}
 
 	// Select track 5 — track 3 should deselect
-	s.Handle(Message{Kind: MsgButton, Button: MCUSelect(5), Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Select(5), Pressed: true})
 	snap = s.Snapshot()
 	if snap.SelectedTrack != 5 {
 		t.Errorf("SelectedTrack = %d, want 5", snap.SelectedTrack)
@@ -62,12 +62,12 @@ func TestStateTrackSelect(t *testing.T) {
 func TestStateMuteSolo(t *testing.T) {
 	s := NewState()
 
-	s.Handle(Message{Kind: MsgButton, Button: MCUMute(2), Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Mute(2), Pressed: true})
 	if !s.Snapshot().Tracks[2].Mute {
 		t.Error("expected track 2 mute=true")
 	}
 
-	s.Handle(Message{Kind: MsgButton, Button: MCUSolo(4), Pressed: true})
+	s.Handle(Message{Kind: MsgButton, Button: Solo(4), Pressed: true})
 	if !s.Snapshot().Tracks[4].Solo {
 		t.Error("expected track 4 solo=true")
 	}

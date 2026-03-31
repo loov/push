@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestIsMCUSysEx(t *testing.T) {
+func TestIsSysEx(t *testing.T) {
 	tests := []struct {
 		name    string
 		payload []byte
@@ -18,8 +18,8 @@ func TestIsMCUSysEx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsMCUSysEx(tt.payload); got != tt.want {
-				t.Errorf("IsMCUSysEx() = %v, want %v", got, tt.want)
+			if got := IsSysEx(tt.payload); got != tt.want {
+				t.Errorf("IsSysEx() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -85,15 +85,15 @@ func TestHandleHandshake(t *testing.T) {
 }
 
 func TestEncodeSerialReply(t *testing.T) {
-	resp := EncodeSerialReply(MCUModelIDLogic, DefaultSerial)
+	resp := EncodeSerialReply(ModelIDLogic, DefaultSerial)
 	if resp[0] != 0xF0 {
 		t.Error("must start with F0")
 	}
 	if resp[len(resp)-1] != 0xF7 {
 		t.Error("must end with F7")
 	}
-	if resp[4] != MCUModelIDLogic {
-		t.Errorf("model ID = 0x%02X, want 0x%02X", resp[4], MCUModelIDLogic)
+	if resp[4] != ModelIDLogic {
+		t.Errorf("model ID = 0x%02X, want 0x%02X", resp[4], ModelIDLogic)
 	}
 	if resp[5] != 0x1B {
 		t.Errorf("command = 0x%02X, want 0x1B", resp[5])

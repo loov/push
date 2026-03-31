@@ -18,23 +18,23 @@ var DeviceInquiry = []byte{0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7}
 // DefaultSerial is the serial number bytes sent in the handshake reply.
 var DefaultSerial = [7]byte{0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x01}
 
-// IsMCUSysEx checks whether a SysEx payload (without F0/F7) starts with
+// IsSysEx checks whether a SysEx payload (without F0/F7) starts with
 // the Mackie Control manufacturer prefix and an accepted model ID.
-func IsMCUSysEx(payload []byte) bool {
+func IsSysEx(payload []byte) bool {
 	if len(payload) < 4 {
 		return false
 	}
-	if payload[0] != MCUSysExPrefix[0] ||
-		payload[1] != MCUSysExPrefix[1] ||
-		payload[2] != MCUSysExPrefix[2] {
+	if payload[0] != SysExPrefix[0] ||
+		payload[1] != SysExPrefix[1] ||
+		payload[2] != SysExPrefix[2] {
 		return false
 	}
 	modelID := payload[3]
-	return modelID == MCUModelIDLogic || modelID == MCUModelIDGeneric
+	return modelID == ModelIDLogic || modelID == ModelIDGeneric
 }
 
 // SysExCommand returns the command byte from an MCU SysEx payload.
-// The payload must have been validated with IsMCUSysEx first.
+// The payload must have been validated with IsSysEx first.
 func SysExCommand(payload []byte) byte {
 	if len(payload) < 5 {
 		return 0
@@ -45,7 +45,7 @@ func SysExCommand(payload []byte) byte {
 // EncodeSerialReply creates the SysEx response to a serial number request (0x1A).
 func EncodeSerialReply(modelID byte, serial [7]byte) []byte {
 	msg := []byte{0xF0}
-	msg = append(msg, MCUSysExPrefix[:]...)
+	msg = append(msg, SysExPrefix[:]...)
 	msg = append(msg, modelID, cmdSerialReply)
 	msg = append(msg, serial[:]...)
 	msg = append(msg, 0xF7)
@@ -56,7 +56,7 @@ func EncodeSerialReply(modelID byte, serial [7]byte) []byte {
 func EncodeKeepaliveAck(modelID byte) []byte {
 	return []byte{
 		0xF0,
-		MCUSysExPrefix[0], MCUSysExPrefix[1], MCUSysExPrefix[2],
+		SysExPrefix[0], SysExPrefix[1], SysExPrefix[2],
 		modelID, cmdKeepaliveAck, 0x00,
 		0xF7,
 	}
@@ -94,7 +94,7 @@ func (k SysExKind) String() string {
 
 // ClassifySysEx determines the kind of an MCU SysEx payload.
 func ClassifySysEx(payload []byte) SysExKind {
-	if !IsMCUSysEx(payload) {
+	if !IsSysEx(payload) {
 		return SysExUnknown
 	}
 	cmd := SysExCommand(payload)
@@ -117,7 +117,7 @@ func ClassifySysEx(payload []byte) SysExKind {
 // HandleHandshake processes MCU SysEx handshake messages and returns
 // any response that should be sent back. Returns nil if no response is needed.
 func HandleHandshake(payload []byte) []byte {
-	if !IsMCUSysEx(payload) {
+	if !IsSysEx(payload) {
 		return nil
 	}
 	modelID := payload[3]

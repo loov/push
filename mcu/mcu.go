@@ -40,7 +40,7 @@ type Message struct {
 	Kind MessageKind
 
 	// Button fields (Kind == MsgButton)
-	Button  MCUButton
+	Button  Button
 	Pressed bool
 
 	// Fader fields (Kind == MsgFader)
@@ -73,7 +73,7 @@ func Parse(data []byte) Message {
 	case status == 0x90 && len(data) >= 3:
 		return Message{
 			Kind:    MsgButton,
-			Button:  MCUButton(data[1]),
+			Button:  Button(data[1]),
 			Pressed: data[2] > 0,
 		}
 
@@ -81,7 +81,7 @@ func Parse(data []byte) Message {
 	case status == 0x80 && len(data) >= 3:
 		return Message{
 			Kind:    MsgButton,
-			Button:  MCUButton(data[1]),
+			Button:  Button(data[1]),
 			Pressed: false,
 		}
 
@@ -146,25 +146,25 @@ func DecodeRelative(value uint8) int {
 	return int(value) - 128
 }
 
-// EncodeButtonPress creates a Note On message for the given MCU button.
-func EncodeButtonPress(button MCUButton) []byte {
+// EncodeButtonPress creates a Note On message for the given button.
+func EncodeButtonPress(button Button) []byte {
 	return []byte{0x90, byte(button), 0x7F}
 }
 
-// EncodeButtonRelease creates a Note On with velocity 0 for the given MCU button.
-func EncodeButtonRelease(button MCUButton) []byte {
+// EncodeButtonRelease creates a Note On with velocity 0 for the given button.
+func EncodeButtonRelease(button Button) []byte {
 	return []byte{0x90, byte(button), 0x00}
 }
 
 // EncodeButtonTap sends a press immediately followed by a release.
-func EncodeButtonTap(button MCUButton) [][]byte {
+func EncodeButtonTap(button Button) [][]byte {
 	return [][]byte{
 		EncodeButtonPress(button),
 		EncodeButtonRelease(button),
 	}
 }
 
-// EncodeFader creates a Pitch Bend message for an MCU fader.
+// EncodeFader creates a Pitch Bend message for a fader.
 // channel: 0-7 (channel strips), 8 (master)
 // value: 0-16383 (14-bit)
 func EncodeFader(channel uint8, value uint16) []byte {
@@ -175,7 +175,7 @@ func EncodeFader(channel uint8, value uint16) []byte {
 	}
 }
 
-// EncodeVPot creates a CC message for an MCU V-Pot rotation.
+// EncodeVPot creates a CC message for a V-Pot rotation.
 // channel: 0-7, delta: positive = CW, negative = CCW
 func EncodeVPot(channel uint8, delta int) []byte {
 	var val byte

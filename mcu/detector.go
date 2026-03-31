@@ -4,9 +4,9 @@ import (
 	"strings"
 )
 
-// DetectMode infers the current MCU assign mode from LCD content.
+// DetectMode infers the current assign mode from LCD content.
 // It checks the first cell of the top LCD row for known mode keywords.
-func DetectMode(lcd [2]LCDRow) MCUAssignMode {
+func DetectMode(lcd [2]LCDRow) AssignMode {
 	// Check the first cell (7 chars) of the top row for mode hints.
 	cell0 := strings.ToLower(strings.TrimSpace(lcd[0].Cell(0)))
 
@@ -24,36 +24,36 @@ func DetectMode(lcd [2]LCDRow) MCUAssignMode {
 		}
 	}
 
-	return MCUAssignModeUnknown
+	return AssignModeUnknown
 }
 
-var modeKeywords = map[string]MCUAssignMode{
-	"volume": MCUAssignModeTrack,
-	"trkfmt": MCUAssignModeTrack,
-	"pan":    MCUAssignModePan,
-	"surr":   MCUAssignModePan,
-	"send":   MCUAssignModeSend,
-	"plug":   MCUAssignModePlugin,
-	"eq":     MCUAssignModeEQ,
-	"dyn":    MCUAssignModeDynamics,
+var modeKeywords = map[string]AssignMode{
+	"volume": AssignModeTrack,
+	"trkfmt": AssignModeTrack,
+	"pan":    AssignModePan,
+	"surr":   AssignModePan,
+	"send":   AssignModeSend,
+	"plug":   AssignModePlugin,
+	"eq":     AssignModeEQ,
+	"dyn":    AssignModeDynamics,
 }
 
-// DetectModeFromAssign maps an MCU assign button note to a mode.
-func DetectModeFromAssign(note byte) MCUAssignMode {
-	switch MCUButton(note) {
-	case MCUAssignTrack:
-		return MCUAssignModeTrack
-	case MCUAssignSend:
-		return MCUAssignModeSend
-	case MCUAssignPan:
-		return MCUAssignModePan
-	case MCUAssignPlugin:
-		return MCUAssignModePlugin
-	case MCUAssignEQ:
-		return MCUAssignModeEQ
-	case MCUAssignInstrument:
-		return MCUAssignModeDynamics
+// DetectModeFromAssign maps an assign button note to a mode.
+func DetectModeFromAssign(note byte) AssignMode {
+	switch Button(note) {
+	case AssignTrack:
+		return AssignModeTrack
+	case AssignSend:
+		return AssignModeSend
+	case AssignPan:
+		return AssignModePan
+	case AssignPlugin:
+		return AssignModePlugin
+	case AssignEQ:
+		return AssignModeEQ
+	case AssignInstrument:
+		return AssignModeDynamics
 	default:
-		return MCUAssignModeUnknown
+		return AssignModeUnknown
 	}
 }

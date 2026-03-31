@@ -7,7 +7,7 @@ package mcu
 // LCD layout: 2 rows × 56 characters.
 // Position 0-55 = top row, 56-111 = bottom row.
 func ParseLCD(payload []byte) (position int, text string, ok bool) {
-	if !IsMCUSysEx(payload) || SysExCommand(payload) != cmdLCD {
+	if !IsSysEx(payload) || SysExCommand(payload) != cmdLCD {
 		return 0, "", false
 	}
 	if len(payload) < 7 {

@@ -2,98 +2,98 @@ package mcu
 
 // MCU (Mackie Control Universal) protocol vocabulary types.
 
-// MCUButton identifies an MCU protocol button by its MIDI note number.
-type MCUButton uint8
+// Button identifies an MCU protocol button by its MIDI note number.
+type Button uint8
 
-// MCU transport buttons.
+// Transport buttons.
 const (
-	MCURewind  MCUButton = 91
-	MCUFastFwd MCUButton = 92
-	MCUStop    MCUButton = 93
-	MCUPlay    MCUButton = 94
-	MCURecord  MCUButton = 95
+	Rewind  Button = 91
+	FastFwd Button = 92
+	Stop    Button = 93
+	Play    Button = 94
+	Record  Button = 95
 )
 
-// MCU cursor buttons.
+// Cursor buttons.
 const (
-	MCUCursorUp    MCUButton = 96
-	MCUCursorDown  MCUButton = 97
-	MCUCursorLeft  MCUButton = 98
-	MCUCursorRight MCUButton = 99
+	CursorUp    Button = 96
+	CursorDown  Button = 97
+	CursorLeft  Button = 98
+	CursorRight Button = 99
 )
 
-// MCU channel strip buttons (base + channel 0-7).
+// Channel strip buttons (base + channel 0-7).
 const (
-	MCURecArm0   MCUButton = 0  // 0-7
-	MCUSolo0     MCUButton = 8  // 8-15
-	MCUMute0     MCUButton = 16 // 16-23
-	MCUSelect0   MCUButton = 24 // 24-31
-	MCUVPotPush0 MCUButton = 32 // 32-39
+	RecArm0   Button = 0  // 0-7
+	Solo0     Button = 8  // 8-15
+	Mute0     Button = 16 // 16-23
+	Select0   Button = 24 // 24-31
+	VPotPush0 Button = 32 // 32-39
 )
 
-// MCURecArm returns the REC ARM button for channel 0-7.
-func MCURecArm(ch uint8) MCUButton { return MCURecArm0 + MCUButton(ch) }
+// RecArm returns the REC ARM button for channel 0-7.
+func RecArm(ch uint8) Button { return RecArm0 + Button(ch) }
 
-// MCUSolo returns the SOLO button for channel 0-7.
-func MCUSolo(ch uint8) MCUButton { return MCUSolo0 + MCUButton(ch) }
+// Solo returns the SOLO button for channel 0-7.
+func Solo(ch uint8) Button { return Solo0 + Button(ch) }
 
-// MCUMute returns the MUTE button for channel 0-7.
-func MCUMute(ch uint8) MCUButton { return MCUMute0 + MCUButton(ch) }
+// Mute returns the MUTE button for channel 0-7.
+func Mute(ch uint8) Button { return Mute0 + Button(ch) }
 
-// MCUSelect returns the SELECT button for channel 0-7.
-func MCUSelect(ch uint8) MCUButton { return MCUSelect0 + MCUButton(ch) }
+// Select returns the SELECT button for channel 0-7.
+func Select(ch uint8) Button { return Select0 + Button(ch) }
 
-// MCUVPotPush returns the V-Pot push button for channel 0-7.
-func MCUVPotPush(ch uint8) MCUButton { return MCUVPotPush0 + MCUButton(ch) }
+// VPotPush returns the V-Pot push button for channel 0-7.
+func VPotPush(ch uint8) Button { return VPotPush0 + Button(ch) }
 
-// MCU function keys.
+// Function keys.
 const (
-	MCUF1 MCUButton = 40
-	MCUF2 MCUButton = 41
-	MCUF3 MCUButton = 42
-	MCUF4 MCUButton = 43
-	MCUF5 MCUButton = 44
-	MCUF6 MCUButton = 45
-	MCUF7 MCUButton = 46
-	MCUF8 MCUButton = 47
+	F1 Button = 40
+	F2 Button = 41
+	F3 Button = 42
+	F4 Button = 43
+	F5 Button = 44
+	F6 Button = 45
+	F7 Button = 46
+	F8 Button = 47
 )
 
-// MCU assign buttons.
+// Assign buttons.
 const (
-	MCUAssignTrack      MCUButton = 48
-	MCUAssignSend       MCUButton = 49
-	MCUAssignPan        MCUButton = 50
-	MCUAssignPlugin     MCUButton = 51
-	MCUAssignEQ         MCUButton = 52
-	MCUAssignInstrument MCUButton = 53
+	AssignTrack      Button = 48
+	AssignSend       Button = 49
+	AssignPan        Button = 50
+	AssignPlugin     Button = 51
+	AssignEQ         Button = 52
+	AssignInstrument Button = 53
 )
 
-// MCU modifier buttons.
+// Modifier buttons.
 const (
-	MCUModShift  MCUButton = 54
-	MCUModCtrl   MCUButton = 55
-	MCUModOption MCUButton = 56
-	MCUModAlt    MCUButton = 57
+	ModShift  Button = 54
+	ModCtrl   Button = 55
+	ModOption Button = 56
+	ModAlt    Button = 57
 )
 
-// MCU navigation.
+// Navigation.
 const (
-	MCUBankLeft     MCUButton = 68
-	MCUBankRight    MCUButton = 69
-	MCUChannelLeft  MCUButton = 70
-	MCUChannelRight MCUButton = 71
+	BankLeft     Button = 68
+	BankRight    Button = 69
+	ChannelLeft  Button = 70
+	ChannelRight Button = 71
 )
 
-// MCU miscellaneous.
+// Miscellaneous.
 const (
-	MCUFlip  MCUButton = 50
-	MCUZoom  MCUButton = 72
-	MCUScrub MCUButton = 73
-	MCUCycle MCUButton = 62
-	MCUClick MCUButton = 65
+	Flip  Button = 50
+	Zoom  Button = 72
+	Scrub Button = 73
+	Cycle Button = 62
+	Click Button = 65
 )
 
-// TransportState holds the current transport status from MCU.
+// TransportState holds the current transport status.
 type TransportState struct {
 	Play   bool
 	Stop   bool
@@ -102,7 +102,7 @@ type TransportState struct {
 	Rew    bool
 }
 
-// TrackState holds the state of one MCU channel strip.
+// TrackState holds the state of one channel strip.
 type TrackState struct {
 	Name       string
 	Mute       bool
@@ -135,41 +135,41 @@ func (r LCDRow) Cell(index int) string {
 	return string(r[start:end])
 }
 
-// MCU SysEx protocol constants.
+// SysEx protocol constants.
 const (
-	MCUModelIDLogic   byte = 0x14
-	MCUModelIDGeneric byte = 0x12
+	ModelIDLogic   byte = 0x14
+	ModelIDGeneric byte = 0x12
 )
 
-// MCUSysExPrefix is the Mackie Control SysEx manufacturer prefix.
-var MCUSysExPrefix = [3]byte{0x00, 0x00, 0x66}
+// SysExPrefix is the Mackie Control SysEx manufacturer prefix.
+var SysExPrefix = [3]byte{0x00, 0x00, 0x66}
 
-// MCU assign mode, as reported by the host.
-type MCUAssignMode uint8
+// AssignMode is the current assign mode, as reported by the host.
+type AssignMode uint8
 
 const (
-	MCUAssignModeUnknown MCUAssignMode = iota
-	MCUAssignModeTrack
-	MCUAssignModeSend
-	MCUAssignModePan
-	MCUAssignModePlugin
-	MCUAssignModeEQ
-	MCUAssignModeDynamics
+	AssignModeUnknown AssignMode = iota
+	AssignModeTrack
+	AssignModeSend
+	AssignModePan
+	AssignModePlugin
+	AssignModeEQ
+	AssignModeDynamics
 )
 
-func (m MCUAssignMode) String() string {
+func (m AssignMode) String() string {
 	switch m {
-	case MCUAssignModeTrack:
+	case AssignModeTrack:
 		return "Track/Volume"
-	case MCUAssignModeSend:
+	case AssignModeSend:
 		return "Send"
-	case MCUAssignModePan:
+	case AssignModePan:
 		return "Pan/Surround"
-	case MCUAssignModePlugin:
+	case AssignModePlugin:
 		return "Plugin"
-	case MCUAssignModeEQ:
+	case AssignModeEQ:
 		return "EQ"
-	case MCUAssignModeDynamics:
+	case AssignModeDynamics:
 		return "Dynamics"
 	default:
 		return "Unknown"

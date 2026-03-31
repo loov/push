@@ -13,17 +13,17 @@ func TestParse(t *testing.T) {
 		{
 			name: "note on - button press",
 			data: []byte{0x90, 94, 127}, // PLAY press
-			want: Message{Kind: MsgButton, Button: MCUPlay, Pressed: true},
+			want: Message{Kind: MsgButton, Button: Play, Pressed: true},
 		},
 		{
 			name: "note on vel 0 - button release",
 			data: []byte{0x90, 94, 0}, // PLAY release
-			want: Message{Kind: MsgButton, Button: MCUPlay, Pressed: false},
+			want: Message{Kind: MsgButton, Button: Play, Pressed: false},
 		},
 		{
 			name: "note off - button release",
 			data: []byte{0x80, 93, 0}, // STOP release
-			want: Message{Kind: MsgButton, Button: MCUStop, Pressed: false},
+			want: Message{Kind: MsgButton, Button: Stop, Pressed: false},
 		},
 		{
 			name: "pitch bend - fader",
@@ -96,7 +96,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestEncodeButtonPress(t *testing.T) {
-	got := EncodeButtonPress(MCUPlay)
+	got := EncodeButtonPress(Play)
 	want := []byte{0x90, 94, 0x7F}
 	if len(got) != len(want) {
 		t.Fatalf("len = %d, want %d", len(got), len(want))
@@ -109,7 +109,7 @@ func TestEncodeButtonPress(t *testing.T) {
 }
 
 func TestEncodeButtonRelease(t *testing.T) {
-	got := EncodeButtonRelease(MCUStop)
+	got := EncodeButtonRelease(Stop)
 	want := []byte{0x90, 93, 0x00}
 	for i := range want {
 		if got[i] != want[i] {
