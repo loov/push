@@ -147,6 +147,10 @@ func ClassifySysEx(payload []byte) SysExKind {
 		return SysExFaderSensitivity
 	case cmd == cmdLCD:
 		return SysExLCD
+	case cmd == cmdKeepaliveAck: // 0x13 — firmware version request / keepalive ACK
+		return SysExUnknown
+	case cmd == cmdFirmwareReply: // 0x14 — firmware version reply
+		return SysExUnknown
 	case cmd >= cmdMetersDump && cmd <= cmdMetersDump+7:
 		return SysExMetersDump
 	case cmd == cmdSerialReq:
