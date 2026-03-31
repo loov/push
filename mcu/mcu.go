@@ -40,8 +40,9 @@ type Message struct {
 	Kind MessageKind
 
 	// Button fields (Kind == MsgButton)
-	Button  Button
-	Pressed bool
+	Button   Button
+	Pressed  bool  // true if velocity > 0 (button down or LED on/blink)
+	Velocity uint8 // raw velocity: 0x00=off, odd=blink, 0x7F=on
 
 	// Fader fields (Kind == MsgFader)
 	FaderChannel uint8  // 0-7 (channel), 8 (master)
@@ -59,6 +60,9 @@ type Message struct {
 	MeterLevel   uint8 // 0-15
 }
 
+// LED returns the three-state LED interpretation of the button velocity.
+func (m Message) LED() LEDState { return LEDStateFromVelocity(m.Velocity) }
+
 // Parse converts raw MIDI bytes into an MCU Message.
 // Returns MsgUnknown if the message type is not recognized.
 func Parse(data []byte) Message {
@@ -72,9 +76,10 @@ func Parse(data []byte) Message {
 	// Note On (0x90) — button press/release
 	case status == 0x90 && len(data) >= 3:
 		return Message{
-			Kind:    MsgButton,
-			Button:  Button(data[1]),
-			Pressed: data[2] > 0,
+			Kind:     MsgButton,
+			Button:   Button(data[1]),
+			Pressed:  data[2] > 0,
+			Velocity: data[2],
 		}
 
 	// Note Off (0x80) — button release

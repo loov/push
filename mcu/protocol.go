@@ -5,6 +5,42 @@ package mcu
 // Button identifies an MCU protocol button by its MIDI note number.
 type Button uint8
 
+// LEDState represents the three-state LED mode from MCU button velocity.
+type LEDState uint8
+
+const (
+	LEDOff   LEDState = iota // velocity 0x00
+	LEDBlink                 // velocity odd (not 0x7F)
+	LEDOn                    // velocity 0x7F
+)
+
+func (s LEDState) String() string {
+	switch s {
+	case LEDOff:
+		return "Off"
+	case LEDBlink:
+		return "Blink"
+	case LEDOn:
+		return "On"
+	default:
+		return "Unknown"
+	}
+}
+
+// LEDStateFromVelocity converts a MIDI velocity to an LED state.
+func LEDStateFromVelocity(vel uint8) LEDState {
+	if vel == 0 {
+		return LEDOff
+	}
+	if vel == 0x7F {
+		return LEDOn
+	}
+	if vel%2 == 1 {
+		return LEDBlink
+	}
+	return LEDOff
+}
+
 // Transport buttons.
 const (
 	Rewind  Button = 91
