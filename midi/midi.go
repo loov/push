@@ -132,6 +132,8 @@ func (c *Client) OpenInput(name string, source Source, callback func(data []byte
 		return nil, fmt.Errorf("midi: opening input port %q: %w", name, err)
 	}
 	if _, err := port.Connect(source.source); err != nil {
+		// Note: coremidi ports have no Dispose method, so the port will
+		// be cleaned up when the Client is closed.
 		return nil, fmt.Errorf("midi: connecting input port %q to %q: %w", name, source.Name(), err)
 	}
 	return &InputPort{port: port}, nil

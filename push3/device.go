@@ -63,18 +63,21 @@ func Connect(client *midi.Client, sourceName, destName string, handler Handler) 
 		return nil, fmt.Errorf("push: finding destination: %w", err)
 	}
 
-	output, err := client.OpenOutput("push3-out", dest)
-	if err != nil {
-		return nil, fmt.Errorf("push: opening output: %w", err)
-	}
+	p := &Device{handler: handler}
 
-	p := &Device{output: output, handler: handler}
-
+	// Open input first — it's more likely to fail (involves connecting to
+	// a source), and we avoid leaking the output port if it does.
 	input, err := client.OpenInput("push3-in", source, p.handleMIDI)
 	if err != nil {
 		return nil, fmt.Errorf("push: opening input: %w", err)
 	}
 	p.input = input
+
+	output, err := client.OpenOutput("push3-out", dest)
+	if err != nil {
+		return nil, fmt.Errorf("push: opening output: %w", err)
+	}
+	p.output = output
 
 	return p, nil
 }
