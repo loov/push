@@ -170,14 +170,14 @@ func TestHandleMIDI_Encoders(t *testing.T) {
 		t.Errorf("delta = %d, want 3", gotDelta)
 	}
 
-	// CC 71, value 65 = counter-clockwise 1
+	// CC 71, value 65 (0b01000001) = counter-clockwise, magnitude 1
 	called = false
 	p.handleMIDI([]byte{0xB0, 71, 65})
 	if !called {
 		t.Fatal("OnEncoder not called for CCW")
 	}
-	if gotDelta != -63 {
-		t.Errorf("delta = %d, want -63", gotDelta)
+	if gotDelta != -1 {
+		t.Errorf("delta = %d, want -1", gotDelta)
 	}
 }
 

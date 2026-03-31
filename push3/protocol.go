@@ -147,13 +147,14 @@ func (e EncoderID) EncoderTouchNote() uint8 {
 	}
 }
 
-// DecodeRelative converts a two's complement CC value to a signed delta.
+// DecodeRelative converts a sign-magnitude CC value to a signed delta.
+// Bit 6 is the sign (0=positive, 1=negative), bits 0-5 are the magnitude.
 // Values 1-63 = clockwise, 65-127 = counter-clockwise.
 func DecodeRelative(value uint8) int {
 	if value < 64 {
 		return int(value)
 	}
-	return int(value) - 128
+	return -int(value & 0x3F)
 }
 
 // ButtonID identifies a Push 3 button by its CC number.
