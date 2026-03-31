@@ -8,7 +8,7 @@ const (
 	cmdKeepaliveAck byte = 0x13
 	cmdSerialReq    byte = 0x1A
 	cmdSerialReply  byte = 0x1B
-	cmdVPotRing     byte = 0x20
+	cmdMeterMode    byte = 0x20
 )
 
 // DeviceInquiry is the Universal Device Inquiry SysEx request.
@@ -30,7 +30,10 @@ func IsSysEx(payload []byte) bool {
 		return false
 	}
 	modelID := payload[3]
-	return modelID == ModelIDLogic || modelID == ModelIDGeneric
+	return modelID == ModelIDMackieControl ||
+		modelID == ModelIDMackieControlXT ||
+		modelID == ModelIDLogicControl ||
+		modelID == ModelIDLogicControlXT
 }
 
 // SysExCommand returns the command byte from an MCU SysEx payload.
@@ -70,7 +73,7 @@ const (
 	SysExKeepalive            // Host ping (cmd 0x00)
 	SysExLCD                  // LCD text update (cmd 0x12)
 	SysExSerialReq            // Serial number request (cmd 0x1A)
-	SysExVPotRing             // V-Pot ring display (cmd 0x20)
+	SysExMeterMode            // Channel meter mode (cmd 0x20)
 	SysExMetersDump           // Meter levels (cmd 0x10-0x17)
 )
 
@@ -83,8 +86,8 @@ func (k SysExKind) String() string {
 		return "LCD"
 	case SysExSerialReq:
 		return "SerialReq"
-	case SysExVPotRing:
-		return "VPotRing"
+	case SysExMeterMode:
+		return "MeterMode"
 	case SysExMetersDump:
 		return "MetersDump"
 	default:
@@ -105,8 +108,8 @@ func ClassifySysEx(payload []byte) SysExKind {
 		return SysExLCD
 	case cmd == cmdSerialReq:
 		return SysExSerialReq
-	case cmd == cmdVPotRing:
-		return SysExVPotRing
+	case cmd == cmdMeterMode:
+		return SysExMeterMode
 	case cmd >= cmdMetersDump && cmd <= cmdMetersDump+7:
 		return SysExMetersDump
 	default:

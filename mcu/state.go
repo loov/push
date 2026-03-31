@@ -225,7 +225,7 @@ func (s *State) handleSysEx(msg Message) string {
 
 		return fmt.Sprintf("lcd: pos=%d text=%q", pos, text)
 
-	case SysExVPotRing:
+	case SysExMeterMode:
 		if len(payload) >= 7 {
 			ch := payload[5] & 0x07
 			ring := payload[6] & 0x0F

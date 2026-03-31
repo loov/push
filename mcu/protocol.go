@@ -135,10 +135,12 @@ func (r LCDRow) Cell(index int) string {
 	return string(r[start:end])
 }
 
-// SysEx protocol constants.
+// SysEx device model IDs.
 const (
-	ModelIDLogic   byte = 0x14
-	ModelIDGeneric byte = 0x12
+	ModelIDLogicControl    byte = 0x10
+	ModelIDLogicControlXT  byte = 0x11
+	ModelIDMackieControl   byte = 0x14
+	ModelIDMackieControlXT byte = 0x15
 )
 
 // SysExPrefix is the Mackie Control SysEx manufacturer prefix.
