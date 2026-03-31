@@ -40,7 +40,7 @@ var xorMask = [4]byte{0xE7, 0xF3, 0xE7, 0xFF}
 type Display struct {
 	dev     *usb.Device
 	frame   []byte // 307,200 bytes: pixel framebuffer (BGR565LE, row-major)
-	sendbuf []byte // 327,696 bytes: assembled frame with header, XOR, filler
+	sendbuf []byte // 16,384 bytes: one chunk of XOR-encoded lines with filler
 }
 
 // OpenDisplay opens the Push 3 USB display.

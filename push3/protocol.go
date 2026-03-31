@@ -591,9 +591,9 @@ var AllButtons = []ButtonID{
 
 	// Encoder presses
 	ButtonVolumePress,
-	// Note: ButtonSwingTempoPress (CC 15) is NOT listed here because CC 15
-	// is handled as EncoderSwingTempo rotation first. The click is detected
-	// by value 127 on CC 15.
+	// Note: ButtonSwingTempoPress (CC 15) is NOT listed here because
+	// it is handled as a special case in handleMIDI before encoder/button
+	// dispatch. CC 14 is the encoder rotation, CC 15 is the click.
 
 	// Jog wheel
 	ButtonJogClick,
