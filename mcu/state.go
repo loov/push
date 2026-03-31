@@ -53,6 +53,10 @@ type Snapshot struct {
 	Flip          bool
 	Zoom          bool
 	Scrub         bool
+	ModShift      bool
+	ModCtrl       bool
+	ModOpt        bool
+	ModAlt        bool
 }
 
 // Snapshot returns an immutable copy of the current state.
@@ -71,6 +75,10 @@ func (s *State) Snapshot() Snapshot {
 		Flip:          s.Flip,
 		Zoom:          s.Zoom,
 		Scrub:         s.Scrub,
+		ModShift:      s.ModShift,
+		ModCtrl:       s.ModCtrl,
+		ModOpt:        s.ModOpt,
+		ModAlt:        s.ModAlt,
 	}
 }
 
