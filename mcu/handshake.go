@@ -2,13 +2,22 @@ package mcu
 
 // MCU SysEx commands.
 const (
-	cmdKeepalive    byte = 0x00
-	cmdMetersDump   byte = 0x10 // 0x10-0x17
-	cmdLCD          byte = 0x12
-	cmdKeepaliveAck byte = 0x13
-	cmdSerialReq    byte = 0x1A
-	cmdSerialReply  byte = 0x1B
-	cmdMeterMode    byte = 0x20
+	cmdKeepalive       byte = 0x00
+	cmdTransportClick  byte = 0x0A
+	cmdLCDBacklight    byte = 0x0B
+	cmdTouchlessFaders byte = 0x0C
+	cmdFaderSensitivity byte = 0x0E
+	cmdMetersDump      byte = 0x10 // 0x10-0x17
+	cmdLCD             byte = 0x12
+	cmdKeepaliveAck    byte = 0x13 // also firmware version request
+	cmdFirmwareReply   byte = 0x14
+	cmdSerialReq       byte = 0x1A
+	cmdSerialReply     byte = 0x1B
+	cmdMeterMode       byte = 0x20
+	cmdGlobalMeterMode byte = 0x21
+	cmdFadersToMin     byte = 0x61
+	cmdAllLEDsOff      byte = 0x62
+	cmdReset           byte = 0x63
 )
 
 // DeviceInquiry is the Universal Device Inquiry SysEx request.
@@ -69,12 +78,20 @@ func EncodeKeepaliveAck(modelID byte) []byte {
 type SysExKind uint8
 
 const (
-	SysExUnknown    SysExKind = iota
-	SysExKeepalive            // Host ping (cmd 0x00)
-	SysExLCD                  // LCD text update (cmd 0x12)
-	SysExSerialReq            // Serial number request (cmd 0x1A)
-	SysExMeterMode            // Channel meter mode (cmd 0x20)
-	SysExMetersDump           // Meter levels (cmd 0x10-0x17)
+	SysExUnknown         SysExKind = iota
+	SysExKeepalive                 // Host ping (cmd 0x00)
+	SysExTransportClick            // Transport button click on/off (cmd 0x0A)
+	SysExLCDBacklight              // LCD backlight saver timeout (cmd 0x0B)
+	SysExTouchlessFaders           // Touchless movable faders mode (cmd 0x0C)
+	SysExFaderSensitivity          // Fader touch sensitivity (cmd 0x0E)
+	SysExMetersDump                // Meter levels (cmd 0x10-0x17)
+	SysExLCD                       // LCD text update (cmd 0x12)
+	SysExSerialReq                 // Serial number request (cmd 0x1A)
+	SysExMeterMode                 // Channel meter mode (cmd 0x20)
+	SysExGlobalMeterMode           // Global LCD meter mode (cmd 0x21)
+	SysExFadersToMin               // Faders to minimum (cmd 0x61)
+	SysExAllLEDsOff                // All LEDs off (cmd 0x62)
+	SysExReset                     // Reset (cmd 0x63)
 )
 
 // String returns a human-readable name for the SysEx kind.
@@ -82,14 +99,30 @@ func (k SysExKind) String() string {
 	switch k {
 	case SysExKeepalive:
 		return "Keepalive"
+	case SysExTransportClick:
+		return "TransportClick"
+	case SysExLCDBacklight:
+		return "LCDBacklight"
+	case SysExTouchlessFaders:
+		return "TouchlessFaders"
+	case SysExFaderSensitivity:
+		return "FaderSensitivity"
+	case SysExMetersDump:
+		return "MetersDump"
 	case SysExLCD:
 		return "LCD"
 	case SysExSerialReq:
 		return "SerialReq"
 	case SysExMeterMode:
 		return "MeterMode"
-	case SysExMetersDump:
-		return "MetersDump"
+	case SysExGlobalMeterMode:
+		return "GlobalMeterMode"
+	case SysExFadersToMin:
+		return "FadersToMin"
+	case SysExAllLEDsOff:
+		return "AllLEDsOff"
+	case SysExReset:
+		return "Reset"
 	default:
 		return "Unknown"
 	}
@@ -104,14 +137,30 @@ func ClassifySysEx(payload []byte) SysExKind {
 	switch {
 	case cmd == cmdKeepalive:
 		return SysExKeepalive
+	case cmd == cmdTransportClick:
+		return SysExTransportClick
+	case cmd == cmdLCDBacklight:
+		return SysExLCDBacklight
+	case cmd == cmdTouchlessFaders:
+		return SysExTouchlessFaders
+	case cmd == cmdFaderSensitivity:
+		return SysExFaderSensitivity
 	case cmd == cmdLCD:
 		return SysExLCD
+	case cmd >= cmdMetersDump && cmd <= cmdMetersDump+7:
+		return SysExMetersDump
 	case cmd == cmdSerialReq:
 		return SysExSerialReq
 	case cmd == cmdMeterMode:
 		return SysExMeterMode
-	case cmd >= cmdMetersDump && cmd <= cmdMetersDump+7:
-		return SysExMetersDump
+	case cmd == cmdGlobalMeterMode:
+		return SysExGlobalMeterMode
+	case cmd == cmdFadersToMin:
+		return SysExFadersToMin
+	case cmd == cmdAllLEDsOff:
+		return SysExAllLEDsOff
+	case cmd == cmdReset:
+		return SysExReset
 	default:
 		return SysExUnknown
 	}
