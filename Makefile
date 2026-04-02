@@ -35,3 +35,15 @@ $(STATICCHECK_TARGETS): staticcheck/%:
 quickcheck:
 	go vet ./...
 	staticcheck ./...
+
+# --- MIDI Device Script install ---
+
+MIDI_DEVICE_SCRIPT_SRC := unPush 3.device
+MIDI_DEVICE_SCRIPT_DST := $(HOME)/Library/Audio/MIDI Devices/unPush 3.device
+
+.PHONY: install-midi-device-script
+install-midi-device-script:
+	@mkdir -p "$(MIDI_DEVICE_SCRIPT_DST)"
+	cp -R "$(MIDI_DEVICE_SCRIPT_SRC)/" "$(MIDI_DEVICE_SCRIPT_DST)/"
+	@echo 'Installed to "$(MIDI_DEVICE_SCRIPT_DST)"'
+	@echo 'Restart Logic Pro to pick up changes.'
