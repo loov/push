@@ -39,7 +39,7 @@ quickcheck:
 # --- MIDI Device Script install ---
 
 MIDI_DEVICE_SCRIPT_SRC := unPush 3.device
-MIDI_DEVICE_SCRIPT_DST := $(HOME)/Library/Audio/MIDI Devices/unPush 3.device
+MIDI_DEVICE_SCRIPT_DST := $(HOME)/Music/Audio Music Apps/MIDI Device Scripts/Ableton/unPush 3.device
 
 .PHONY: install-midi-device-script
 install-midi-device-script:
