@@ -150,6 +150,16 @@ function controller_info()
 		model = 'Ableton Push 3',
 
 		auto_passthrough = false,
+		ignore_notes = true,
+
+		-- Auto-detect Push 3 via Universal Device Inquiry.
+		device_request = {0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7},
+		device_inquiry = {0xF0, 0x7E, 0x00, 0x06, 0x02,
+			0x00, 0x21, 0x1D,  -- Ableton manufacturer ID
+			MIDI_Wildcard, MIDI_Wildcard,
+			MIDI_Wildcard, MIDI_Wildcard,
+			MIDI_Wildcard, MIDI_Wildcard,
+			MIDI_Wildcard, MIDI_Wildcard, 0xF7},
 
 		items = items,
 	}
@@ -165,6 +175,24 @@ function controller_initialize(appName, newlyDetected)
 end
 
 function controller_finalize()
+	-- Reset LED brightness to default.
+	return {
+		midi={0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01, 0x06, 0x40, 0xF7},
+		outport=PORT,
+	}
+end
+
+function controller_names(channel)
+	if channel == 0 then
+		return {
+			[71] = "Encoder 1", [72] = "Encoder 2",
+			[73] = "Encoder 3", [74] = "Encoder 4",
+			[75] = "Encoder 5", [76] = "Encoder 6",
+			[77] = "Encoder 7", [78] = "Encoder 8",
+			[79] = "Volume",    [14] = "Swing/Tempo",
+			[70] = "Jog Wheel",
+		}
+	end
 	return {}
 end
 
