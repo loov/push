@@ -1,274 +1,163 @@
 -- unPush 3 — Unofficial Push 3 MIDI Device Script for Logic Pro
---
--- Phase 1: Device Registration + Transport + Encoders
+-- Requires Lua 5.1 (Logic Pro's MDS runtime).
+
+local PORT = 'Live Port'
 
 --------------------------------------------------------------------------------
 -- [1] Constants
 --------------------------------------------------------------------------------
 
-local PORT = 'Ableton Push 3 Live Port'
-
--- SysEx prefix for Push 3 commands.
-local SYSEX_PREFIX = {0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01}
-
--- Palette indices (default Push 3 palette).
 local BLACK     = 0
-local ORANGE    = 3
-local YELLOW    = 8
-local TURQUOISE = 15
-local PURPLE    = 22
-local PINK      = 25
-local WHITE     = 122
-local BLUE      = 125
 local GREEN     = 126
-local RED       = 127
-
--- Button CCs.
-local CC_SETS           = 80
-local CC_SETUP          = 30
-local CC_LEARN          = 81
-local CC_USER           = 59
-local CC_DEVICE         = 110
-local CC_MIX            = 112
-local CC_CLIP           = 113
-local CC_SESSION_SCREEN = 34
-local CC_UNDO           = 119
-local CC_SAVE           = 82
-local CC_ADD            = 32
-local CC_SWAP           = 33
-local CC_LOCK           = 83
-local CC_STOP_CLIP      = 29
-local CC_MUTE           = 60
-local CC_SOLO           = 61
-local CC_TAP_TEMPO      = 3
-local CC_METRONOME      = 9
-local CC_QUANTIZE       = 116
-local CC_FIXED_LENGTH   = 90
-local CC_AUTOMATE       = 89
-local CC_NEW            = 92
-local CC_CAPTURE        = 65
-local CC_RECORD         = 86
-local CC_PLAY           = 85
-local CC_NOTE           = 50
-local CC_SESSION_PAD    = 51
-local CC_SCALE          = 58
-local CC_LAYOUT         = 31
-local CC_REPEAT         = 56
-local CC_ACCENT         = 57
-local CC_DOUBLE_LOOP    = 117
-local CC_DUPLICATE      = 88
-local CC_CONVERT        = 35
-local CC_DELETE          = 118
-local CC_UP             = 46
-local CC_DOWN           = 47
-local CC_LEFT           = 44
-local CC_RIGHT          = 45
-local CC_DPAD_CENTER    = 91
-local CC_OCTAVE_UP      = 55
-local CC_OCTAVE_DOWN    = 54
-local CC_PAGE_LEFT      = 62
-local CC_PAGE_RIGHT     = 63
-local CC_SHIFT          = 49
-local CC_SELECT         = 48
-local CC_VOLUME_PRESS   = 111
-local CC_SWING_PRESS    = 15
-local CC_JOG_CLICK      = 94
-local CC_JOG_PUSH_LEFT  = 93
-local CC_JOG_PUSH_RIGHT = 95
-
--- Upper display buttons: CC 102-109.
--- Lower display buttons: CC 20-27.
--- Main Track: CC 28.
--- Scene buttons: CC 36-43 (scene 8=36, scene 1=43).
-
--- Encoder rotation CCs.
--- Track 1-8: CC 71-78, Volume: CC 79, Swing/Tempo: CC 14, Jog: CC 70.
-
--- Encoder touch notes.
--- Track 1-8: Notes 0-7, Volume: Note 8, Swing/Tempo: Note 10, Jog: Note 11.
-
--- Touch strip touch: Note 12.
--- D-pad center touch: Note 13.
-
--- Pad notes: 36-99 (note = 92 - row*8 + col).
 
 --------------------------------------------------------------------------------
--- [6] Items — build all controller items
+-- [6] Items
 --------------------------------------------------------------------------------
 
-local function build_items()
-    local items = {}
+local nextID = 0
+local function id()
+	local v = nextID
+	nextID = nextID + 1
+	return v
+end
 
-    local function button(name, cc)
-        items[#items+1] = {
-            name = name,
-            objectType = 'Button',
-            midiType = 'Momentary',
-            midi = {0xB0, cc, MIDI_LSB},
-            inport = PORT,
-            outport = PORT,
-        }
-    end
+local function button(name, cc)
+	return {name=name, controlID=id(), midi={0xB0, cc, MIDI_LSB},
+		inport=PORT, outport=PORT}
+end
 
-    local function knob(name, cc)
-        items[#items+1] = {
-            name = name,
-            objectType = 'Knob',
-            midiType = 'RelativeSigned',
-            midi = {0xB0, cc, MIDI_LSB},
-            inport = PORT,
-            outport = PORT,
-        }
-    end
+local function knob(name, cc)
+	return {name=name, controlID=id(), midi={0xB0, cc, MIDI_LSB},
+		fbType=FB_OFF, valueMode=kAssignScaled, selfFeedback=false,
+		inport=PORT}
+end
 
-    local function touch(name, note)
-        items[#items+1] = {
-            name = name,
-            objectType = 'Button',
-            midiType = 'Note',
-            midi = {0x90, note, MIDI_LSB},
-            inport = PORT,
-            outport = PORT,
-        }
-    end
+local function touch(name, note)
+	return {name=name, controlID=id(), midi={MIDI_NoteOn, note, MIDI_LSB},
+		inport=PORT, outport=PORT}
+end
 
-    -- Transport buttons.
-    button('Play', CC_PLAY)
-    button('Record', CC_RECORD)
-    button('Stop Clip', CC_STOP_CLIP)
-    button('Metronome', CC_METRONOME)
-    button('Tap Tempo', CC_TAP_TEMPO)
-    button('Quantize', CC_QUANTIZE)
-    button('Automate', CC_AUTOMATE)
-    button('Capture', CC_CAPTURE)
-    button('New', CC_NEW)
-    button('Save', CC_SAVE)
-    button('Double Loop', CC_DOUBLE_LOOP)
-    button('Fixed Length', CC_FIXED_LENGTH)
+local function pad(name, note)
+	return {name=name, controlID=id(), midi={MIDI_NoteOn, note, MIDI_LSB},
+		inport=PORT, outport=PORT, valueMode=kAssignRotate}
+end
 
-    -- Action buttons.
-    button('Undo', CC_UNDO)
-    button('Delete', CC_DELETE)
-    button('Duplicate', CC_DUPLICATE)
-    button('Convert', CC_CONVERT)
+local controls = {
+	[0] = button('Play', 85),
+}
 
-    -- Mode + modifier buttons.
-    button('Note', CC_NOTE)
-    button('Mix', CC_MIX)
-    button('Device', CC_DEVICE)
-    button('Clip', CC_CLIP)
-    button('Session Screen', CC_SESSION_SCREEN)
-    button('Session Pad', CC_SESSION_PAD)
-    button('Scale', CC_SCALE)
-    button('Layout', CC_LAYOUT)
-    button('Shift', CC_SHIFT)
-    button('Select', CC_SELECT)
-    button('Accent', CC_ACCENT)
-    button('Repeat', CC_REPEAT)
-    button('Mute', CC_MUTE)
-    button('Solo', CC_SOLO)
-    button('Lock', CC_LOCK)
+-- Transport.
+controls[#controls] = button('Record', 86)
+controls[#controls] = button('Stop Clip', 29)
+controls[#controls] = button('Metronome', 9)
+controls[#controls] = button('Tap Tempo', 3)
+controls[#controls] = button('Quantize', 116)
+controls[#controls] = button('Automate', 89)
+controls[#controls] = button('Capture', 65)
+controls[#controls] = button('New', 92)
+controls[#controls] = button('Save', 82)
+controls[#controls] = button('Double Loop', 117)
+controls[#controls] = button('Fixed Length', 90)
 
-    -- Top-left row.
-    button('Sets', CC_SETS)
-    button('Setup', CC_SETUP)
-    button('Learn', CC_LEARN)
-    button('User', CC_USER)
+-- Action buttons.
+controls[#controls] = button('Undo', 119)
+controls[#controls] = button('Delete', 118)
+controls[#controls] = button('Duplicate', 88)
+controls[#controls] = button('Convert', 35)
 
-    -- Display area.
-    button('Add', CC_ADD)
-    button('Swap', CC_SWAP)
+-- Mode + modifier buttons.
+controls[#controls] = button('Note', 50)
+controls[#controls] = button('Mix', 112)
+controls[#controls] = button('Device', 110)
+controls[#controls] = button('Clip', 113)
+controls[#controls] = button('Session Screen', 34)
+controls[#controls] = button('Session Pad', 51)
+controls[#controls] = button('Scale', 58)
+controls[#controls] = button('Layout', 31)
+controls[#controls] = button('Shift', 49)
+controls[#controls] = button('Select', 48)
+controls[#controls] = button('Accent', 57)
+controls[#controls] = button('Repeat', 56)
+controls[#controls] = button('Mute', 60)
+controls[#controls] = button('Solo', 61)
+controls[#controls] = button('Lock', 83)
 
-    -- Navigation.
-    button('Up', CC_UP)
-    button('Down', CC_DOWN)
-    button('Left', CC_LEFT)
-    button('Right', CC_RIGHT)
-    button('D-Pad Center', CC_DPAD_CENTER)
-    button('Octave Up', CC_OCTAVE_UP)
-    button('Octave Down', CC_OCTAVE_DOWN)
-    button('Page Left', CC_PAGE_LEFT)
-    button('Page Right', CC_PAGE_RIGHT)
+-- Top-left row.
+controls[#controls] = button('Sets', 80)
+controls[#controls] = button('Setup', 30)
+controls[#controls] = button('Learn', 81)
+controls[#controls] = button('User', 59)
 
-    -- Encoder presses.
-    button('Volume Press', CC_VOLUME_PRESS)
-    button('Swing/Tempo Press', CC_SWING_PRESS)
-    button('Jog Click', CC_JOG_CLICK)
-    button('Jog Push Left', CC_JOG_PUSH_LEFT)
-    button('Jog Push Right', CC_JOG_PUSH_RIGHT)
+-- Display area.
+controls[#controls] = button('Add', 32)
+controls[#controls] = button('Swap', 33)
 
-    -- Upper display buttons (CC 102-109).
-    for i = 1, 8 do
-        button('Upper ' .. i, 101 + i)
-    end
+-- Navigation.
+controls[#controls] = button('Up', 46)
+controls[#controls] = button('Down', 47)
+controls[#controls] = button('Left', 44)
+controls[#controls] = button('Right', 45)
+controls[#controls] = button('D-Pad Center', 91)
+controls[#controls] = button('Octave Up', 55)
+controls[#controls] = button('Octave Down', 54)
+controls[#controls] = button('Page Left', 62)
+controls[#controls] = button('Page Right', 63)
 
-    -- Lower display buttons (CC 20-27).
-    for i = 1, 8 do
-        button('Lower ' .. i, 19 + i)
-    end
+-- Encoder presses.
+controls[#controls] = button('Volume Press', 111)
+controls[#controls] = button('Swing/Tempo Press', 15)
+controls[#controls] = button('Jog Click', 94)
+controls[#controls] = button('Jog Push Left', 93)
+controls[#controls] = button('Jog Push Right', 95)
 
-    -- Main Track button.
-    button('Main Track', 28)
+-- Upper display buttons (CC 102-109).
+for i = 1, 8 do
+	controls[#controls] = button('Upper ' .. i, 101 + i)
+end
 
-    -- Scene buttons (CC 43 down to 36, scene 1=43, scene 8=36).
-    for i = 1, 8 do
-        button('Scene ' .. i, 44 - i)
-    end
+-- Lower display buttons (CC 20-27).
+for i = 1, 8 do
+	controls[#controls] = button('Lower ' .. i, 19 + i)
+end
 
-    -- Track encoders 1-8 (CC 71-78, sign-magnitude relative).
-    for i = 1, 8 do
-        knob('Encoder ' .. i, 70 + i)
-    end
+-- Main Track button.
+controls[#controls] = button('Main Track', 28)
 
-    -- Volume encoder (CC 79).
-    knob('Volume', 79)
+-- Scene buttons (CC 43 down to 36).
+for i = 1, 8 do
+	controls[#controls] = button('Scene ' .. i, 44 - i)
+end
 
-    -- Swing/Tempo encoder (CC 14).
-    knob('Swing/Tempo', 14)
+-- Track encoders 1-8 (CC 71-78).
+for i = 1, 8 do
+	controls[#controls] = knob('Encoder ' .. i, 70 + i)
+end
 
-    -- Jog wheel (CC 70).
-    knob('Jog Wheel', 70)
+-- Volume encoder (CC 79).
+controls[#controls] = knob('Volume', 79)
 
-    -- Encoder touch notes (0-7 = track, 8 = volume, 10 = swing, 11 = jog).
-    for i = 1, 8 do
-        touch('Encoder Touch ' .. i, i - 1)
-    end
-    touch('Volume Touch', 8)
-    touch('Swing/Tempo Touch', 10)
-    touch('Jog Touch', 11)
+-- Swing/Tempo encoder (CC 14).
+controls[#controls] = knob('Swing/Tempo', 14)
 
-    -- Touch strip touch (Note 12).
-    touch('Touch Strip Touch', 12)
+-- Jog wheel (CC 70).
+controls[#controls] = knob('Jog Wheel', 70)
 
-    -- D-Pad center touch (Note 13).
-    touch('D-Pad Center Touch', 13)
+-- Encoder touch notes (0-7 = track, 8 = volume, 10 = swing, 11 = jog).
+for i = 1, 8 do
+	controls[#controls] = touch('Encoder Touch ' .. i, i - 1)
+end
+controls[#controls] = touch('Volume Touch', 8)
+controls[#controls] = touch('Swing/Tempo Touch', 10)
+controls[#controls] = touch('Jog Touch', 11)
+controls[#controls] = touch('Touch Strip Touch', 12)
+controls[#controls] = touch('D-Pad Center Touch', 13)
 
-    -- Touch strip (pitch bend on channel 0).
-    items[#items+1] = {
-        name = 'Touch Strip',
-        objectType = 'Wheel',
-        midiType = 'PitchBend',
-        midi = {0xE0, MIDI_MSB, MIDI_LSB},
-        inport = PORT,
-        outport = PORT,
-    }
-
-    -- 64 pads (notes 36-99, 8x8 grid).
-    for row = 0, 7 do
-        for col = 0, 7 do
-            local note = 92 - row * 8 + col
-            items[#items+1] = {
-                name = 'Pad ' .. (row + 1) .. '/' .. (col + 1),
-                objectType = 'Drumpad',
-                midiType = 'Note',
-                midi = {0x90, note, MIDI_LSB},
-                inport = PORT,
-                outport = PORT,
-            }
-        end
-    end
-
-    return items
+-- 64 pads (notes 36-99, 8x8 grid).
+for row = 0, 7 do
+	for col = 0, 7 do
+		local note = 92 - row * 8 + col
+		controls[#controls] = pad('Pad ' .. (row + 1) .. '/' .. (col + 1), note)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -276,65 +165,76 @@ end
 --------------------------------------------------------------------------------
 
 function controller_info()
-    return {
-        manufacturer = 'Ableton',
-        model = 'unPush 3',
-        auto_passthrough = false,
-        supports_feedback = true,
-        preset_name = 'unPush 3 \xe2\x80\x94 Connect via USB, use Live Port',
-        inport = PORT,
-        outport = PORT,
+	return {
+		manufacturer = 'Ableton',
+		model = 'unPush 3',
+		version = 1,
 
-        -- Auto-detect Push 3 via Universal Device Inquiry.
-        device_request = {0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7},
-        device_inquiry = {0xF0, 0x7E, 0x00, 0x06, 0x02,
-                          0x00, 0x21, 0x1D,
-                          MIDI_Wildcard, MIDI_Wildcard,
-                          MIDI_Wildcard, MIDI_Wildcard,
-                          MIDI_Wildcard, MIDI_Wildcard,
-                          MIDI_Wildcard, MIDI_Wildcard, 0xF7},
+		items = controls,
 
-        items = build_items(),
-    }
+		assignments = {
+			{zone='Transport'},
+			{control='Play', keyCmd=535},
+			{control='Record', keyCmd=7},
+
+			{zone='Global'},
+			{mode='Global'},
+			{control='Up', keyCmd=1272},
+			{control='Down', keyCmd=1273},
+			{control='Undo', keyCmd=14},
+			{control='Save', keyCmd=9},
+			{control='Metronome', keyCmd=56},
+			{control='Quantize', keyCmd=68},
+			{control='Capture', keyCmd=299},
+			{control='Delete', keyCmd=31},
+			{control='Duplicate', keyCmd=59},
+
+			{zone='Rotaries'},
+			{control='Note', setMode='Device'},
+			{control='Mix', setMode='Mix'},
+
+			{mode='Device'},
+			{control='Encoder 1', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramName='@tp'},
+			{control='Encoder 2', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=1, paramName='@tp'},
+			{control='Encoder 3', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=2, paramName='@tp'},
+			{control='Encoder 4', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=3, paramName='@tp'},
+			{control='Encoder 5', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=4, paramName='@tp'},
+			{control='Encoder 6', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=5, paramName='@tp'},
+			{control='Encoder 7', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=6, paramName='@tp'},
+			{control='Encoder 8', CSTrack=true, trackParam=CS_SMARTCONTROL1, paramOffset=7, paramName='@tp'},
+
+			{mode='Mix'},
+			{control='Encoder 1', faderBankTrack=0, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 2', faderBankTrack=1, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 3', faderBankTrack=2, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 4', faderBankTrack=3, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 5', faderBankTrack=4, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 6', faderBankTrack=5, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 7', faderBankTrack=6, trackParam=AUVOLUME, paramName='@tp'},
+			{control='Encoder 8', faderBankTrack=7, trackParam=AUVOLUME, paramName='@tp'},
+		},
+
+		alertAssignments = {},
+	}
 end
 
 function controller_initialize(appName, newlyDetected)
-    -- Set LED brightness to max.
-    local msg = {0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01, 0x06, 0x7F, 0xF7}
-
-    -- Light the Note button to indicate active mode.
-    local note_led = {0xB0, CC_NOTE, GREEN}
-
-    return {midi = msg}, {midi = note_led}
+	print("unPush3 INIT", appName, newlyDetected)
+	return {
+		midi={0xF0, 0x00, 0x21, 0x1D, 0x01, 0x01, 0x06, 0x7F, 0xF7},
+		outport=PORT,
+	}
 end
 
 function controller_finalize()
-    -- Turn off Note button LED.
-    return {midi = {0xB0, CC_NOTE, BLACK}}
+	return {}
 end
 
-function controller_midi_in(midiEvent, portName)
-    -- Only process Live Port events.
-    if portName and not portName:match('Live') then
-        return nil
-    end
+function controller_midi_in(midi, port)
+	if port ~= PORT then return nil end
 
-    local status = midiEvent[1] & 0xF0
-    local ch = midiEvent[1] & 0x0F
+	local ch = midi[0] % 16
+	if ch > 0 then return {} end
 
-    -- Block MPE channels (1-15) for now — Phase 2 handles pad remapping.
-    if ch > 0 then
-        return {}  -- block
-    end
-
-    -- Pass through channel 0 events (buttons, encoders, touch strip).
-    return midiEvent
-end
-
-function controller_midi_out(midiEvent, name, valueString, color)
-    return midiEvent
-end
-
-function controller_timer_trigger()
-    return nil
+	return nil
 end

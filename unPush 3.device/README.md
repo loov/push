@@ -9,7 +9,7 @@ into a native Logic Pro control surface without requiring a bridge app.
 make install-midi-device-script
 ```
 
-This copies the device bundle to `~/Library/Audio/MIDI Devices/`. Restart
+This copies the device bundle to `~/Music/Audio Music Apps/MIDI Device Scripts/`. Restart
 Logic Pro to pick up changes.
 
 ## What works (Phase 1)
