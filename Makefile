@@ -47,3 +47,24 @@ install-midi-device-script:
 	cp -R "$(MIDI_DEVICE_SCRIPT_SRC)/" "$(MIDI_DEVICE_SCRIPT_DST)/"
 	@echo 'Installed to "$(MIDI_DEVICE_SCRIPT_DST)"'
 	@echo 'Restart Logic Pro to pick up changes.'
+
+LOGIC_CS_PREFS := $(HOME)/Library/Preferences/com.apple.logic.pro.cs
+
+.PHONY: backup-logic-cs-prefs
+backup-logic-cs-prefs:
+	@if [ -f "$(LOGIC_CS_PREFS)" ]; then \
+		cp "$(LOGIC_CS_PREFS)" "$(LOGIC_CS_PREFS).backup"; \
+		echo 'Backed up to "$(LOGIC_CS_PREFS).backup"'; \
+	else \
+		echo 'No preferences file found at "$(LOGIC_CS_PREFS)"'; \
+	fi
+
+.PHONY: reset-midi-device-script
+reset-midi-device-script: install-midi-device-script
+	@if [ -f "$(LOGIC_CS_PREFS).backup" ]; then \
+		cp "$(LOGIC_CS_PREFS).backup" "$(LOGIC_CS_PREFS)"; \
+		echo 'Restored preferences from backup. Restart Logic Pro for a clean slate.'; \
+	else \
+		echo 'No backup found. Run "make backup-logic-cs-prefs" first (before adding unPush 3).'; \
+		exit 1; \
+	fi
