@@ -50,7 +50,7 @@ function controller_info()
 	-- Action buttons.
 	button('Undo', 119, 'Undo')
 	button('Delete', 118, 'Delete')
-	button('Duplicate', 88)
+	button('Duplicate', 88, 'New Track with Duplicate Settings')
 	button('Convert', 35)
 
 	-- Mode + modifier buttons.
@@ -66,8 +66,8 @@ function controller_info()
 	button('Select', 48)
 	button('Accent', 57)
 	button('Repeat', 56, 'Note Repeat')
-	button('Mute', 60)
-	button('Solo', 61)
+	button('Mute', 60, 'Toggle Channel Strip Mute')
+	button('Solo', 61, 'Toggle Channel Strip Solo')
 	button('Lock', 83)
 
 	-- Top-left row.
