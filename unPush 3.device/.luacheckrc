@@ -1,4 +1,4 @@
-std = "lua51"
+std = "lua52"
 
 -- Globals provided by Logic Pro's MDS runtime.
 read_globals = {

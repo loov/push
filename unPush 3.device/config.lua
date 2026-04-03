@@ -6,9 +6,16 @@ local PORT = 'Ableton Push 3 Live Port'
 function controller_info()
 	local items = {}
 
-	local function button(name, cc)
-		items[#items+1] = {name=name, objectType='Button', midiType='Momentary',
-			midi={0xB0, cc, MIDI_LSB}, inport=PORT, outport=PORT}
+	local function button(name, cc, cmd)
+		local item = {name=name, label=name, objectType='Button',
+			midiType='Momentary', midi={0xB0, cc, MIDI_LSB},
+			inport=PORT, outport=PORT}
+		if type(cmd) == 'number' then
+			item.action = cmd
+		elseif type(cmd) == 'string' then
+			item.name = cmd
+		end
+		items[#items+1] = item
 	end
 
 	local function knob(name, cc)
@@ -27,22 +34,22 @@ function controller_info()
 	end
 
 	-- Transport.
-	button('Play or Stop', 85)
-	button('Record', 86)
-	button('Stop Clip', 29)
-	button('Metronome', 9)
-	button('Tap Tempo', 3)
-	button('Quantize', 116)
+	button('Play', 85, 'Play or Stop')
+	button('Record', 86, 'Record Toggle')
+	button('Stop Clip', 29, 'Stop and Go to Beginning')
+	button('Metronome', 9, 'Toggle Metronome Click')
+	button('Tap Tempo', 3, 'Tap Tempo')
+	button('Quantize', 116, 'Quantize Selected Regions/Cells/Events')
 	button('Automate', 89)
-	button('Capture', 65)
-	button('New', 92)
-	button('Save', 82)
-	button('Double Loop', 117)
+	button('Capture', 65, 'Flashback Capture as Recording')
+	button('New', 92, 'New Tracks...')
+	button('Save', 82, 'Save')
+	button('Double Loop', 117, 'Double Cycle/Loop Length')
 	button('Fixed Length', 90)
 
 	-- Action buttons.
-	button('Undo', 119)
-	button('Delete', 118)
+	button('Undo', 119, 'Undo')
+	button('Delete', 118, 'Delete')
 	button('Duplicate', 88)
 	button('Convert', 35)
 
@@ -58,7 +65,7 @@ function controller_info()
 	button('Shift', 49)
 	button('Select', 48)
 	button('Accent', 57)
-	button('Repeat', 56)
+	button('Repeat', 56, 'Note Repeat')
 	button('Mute', 60)
 	button('Solo', 61)
 	button('Lock', 83)
@@ -74,10 +81,10 @@ function controller_info()
 	button('Swap', 33)
 
 	-- Navigation.
-	button('Up', 46)
-	button('Down', 47)
-	button('Left', 44)
-	button('Right', 45)
+	button('Up', 46, 'Select Previous Track')
+	button('Down', 47, 'Select Next Track')
+	button('Left', 44, 'Rewind by Bar')
+	button('Right', 45, 'Forward by Bar')
 	button('D-Pad Center', 91)
 	button('Octave Up', 55)
 	button('Octave Down', 54)
