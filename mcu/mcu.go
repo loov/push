@@ -65,10 +65,10 @@ type Message struct {
 	VPotDelta   int   // positive = clockwise, negative = counter-clockwise
 
 	// VPotRing fields (Kind == MsgVPotRing)
-	VPotRingChannel uint8       // 0-7
+	VPotRingChannel uint8           // 0-7
 	VPotRingMode    VPotRingLEDMode // display mode
-	VPotRingValue   uint8       // 0-11
-	VPotRingCenter  bool        // center LED on/off
+	VPotRingValue   uint8           // 0-11
+	VPotRingCenter  bool            // center LED on/off
 
 	// JogWheel fields (Kind == MsgJogWheel)
 	JogDelta int // positive = clockwise, negative = counter-clockwise

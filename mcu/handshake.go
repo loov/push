@@ -2,22 +2,22 @@ package mcu
 
 // MCU SysEx commands.
 const (
-	cmdKeepalive       byte = 0x00
-	cmdTransportClick  byte = 0x0A
-	cmdLCDBacklight    byte = 0x0B
-	cmdTouchlessFaders byte = 0x0C
+	cmdKeepalive        byte = 0x00
+	cmdTransportClick   byte = 0x0A
+	cmdLCDBacklight     byte = 0x0B
+	cmdTouchlessFaders  byte = 0x0C
 	cmdFaderSensitivity byte = 0x0E
-	cmdMetersDump      byte = 0x10 // 0x10-0x17
-	cmdLCD             byte = 0x12
-	cmdKeepaliveAck    byte = 0x13 // also firmware version request
-	cmdFirmwareReply   byte = 0x14
-	cmdSerialReq       byte = 0x1A
-	cmdSerialReply     byte = 0x1B
-	cmdMeterMode       byte = 0x20
-	cmdGlobalMeterMode byte = 0x21
-	cmdFadersToMin     byte = 0x61
-	cmdAllLEDsOff      byte = 0x62
-	cmdReset           byte = 0x63
+	cmdMetersDump       byte = 0x10 // 0x10-0x17
+	cmdLCD              byte = 0x12
+	cmdKeepaliveAck     byte = 0x13 // also firmware version request
+	cmdFirmwareReply    byte = 0x14
+	cmdSerialReq        byte = 0x1A
+	cmdSerialReply      byte = 0x1B
+	cmdMeterMode        byte = 0x20
+	cmdGlobalMeterMode  byte = 0x21
+	cmdFadersToMin      byte = 0x61
+	cmdAllLEDsOff       byte = 0x62
+	cmdReset            byte = 0x63
 )
 
 // DeviceInquiry is the Universal Device Inquiry SysEx request.
@@ -78,20 +78,20 @@ func EncodeKeepaliveAck(modelID byte) []byte {
 type SysExKind uint8
 
 const (
-	SysExUnknown         SysExKind = iota
-	SysExKeepalive                 // Host ping (cmd 0x00)
-	SysExTransportClick            // Transport button click on/off (cmd 0x0A)
-	SysExLCDBacklight              // LCD backlight saver timeout (cmd 0x0B)
-	SysExTouchlessFaders           // Touchless movable faders mode (cmd 0x0C)
-	SysExFaderSensitivity          // Fader touch sensitivity (cmd 0x0E)
-	SysExMetersDump                // Meter levels (cmd 0x10-0x17)
-	SysExLCD                       // LCD text update (cmd 0x12)
-	SysExSerialReq                 // Serial number request (cmd 0x1A)
-	SysExMeterMode                 // Channel meter mode (cmd 0x20)
-	SysExGlobalMeterMode           // Global LCD meter mode (cmd 0x21)
-	SysExFadersToMin               // Faders to minimum (cmd 0x61)
-	SysExAllLEDsOff                // All LEDs off (cmd 0x62)
-	SysExReset                     // Reset (cmd 0x63)
+	SysExUnknown          SysExKind = iota
+	SysExKeepalive                  // Host ping (cmd 0x00)
+	SysExTransportClick             // Transport button click on/off (cmd 0x0A)
+	SysExLCDBacklight               // LCD backlight saver timeout (cmd 0x0B)
+	SysExTouchlessFaders            // Touchless movable faders mode (cmd 0x0C)
+	SysExFaderSensitivity           // Fader touch sensitivity (cmd 0x0E)
+	SysExMetersDump                 // Meter levels (cmd 0x10-0x17)
+	SysExLCD                        // LCD text update (cmd 0x12)
+	SysExSerialReq                  // Serial number request (cmd 0x1A)
+	SysExMeterMode                  // Channel meter mode (cmd 0x20)
+	SysExGlobalMeterMode            // Global LCD meter mode (cmd 0x21)
+	SysExFadersToMin                // Faders to minimum (cmd 0x61)
+	SysExAllLEDsOff                 // All LEDs off (cmd 0x62)
+	SysExReset                      // Reset (cmd 0x63)
 )
 
 // String returns a human-readable name for the SysEx kind.
